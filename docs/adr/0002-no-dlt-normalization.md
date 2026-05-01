@@ -45,7 +45,7 @@ If any of these invariants ever needs to change, that is a prism release decisio
 
 **Negative:**
 
-- Nested arrays/objects stay nested. DuckDB handles this fine via STRUCT/LIST types in `read_json_auto`, but DAB mappings need to navigate nested paths.
+- Nested arrays/objects stay nested in landed JSONL. DAS contracts handle nesting via `source_path` (e.g., `Address.City`) on flat-typed columns, or by declaring `type: JSON` to keep a nested subtree intact for downstream consumption.
 - Users coming from a default-dlt setup may expect snake_case column names. Documentation needs to call this out.
 - A small subset of dlt features (incremental scopes that depend on inferred schema, deduplication via `merge` disposition) become unavailable in DAS. Acceptable: those features are DAB's job in our design.
 

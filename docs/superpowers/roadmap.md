@@ -7,7 +7,7 @@ A fully declarative warehouse where the user writes only YAML contracts. The CLI
 - Daana blog: [Contract-Driven Data Transformation](https://blog.daana.dev/blog/contract-driven-data-transformation) — the "contract is the documentation, schema, and transformation logic" framing.
 - Daana docs: [DMDL](https://docs.daana.dev/docs/dmdl), [Focal Framework](https://docs.daana.dev/docs/concepts/focal-framework) — the four-pillar (Model / Mapping / Workflow / Connections) decomposition and the IDFR / Descriptor / Relation physical model.
 
-We diverge from Daana in two ways: the CLI is Go (not Python), and DAS contracts carry no per-column schema — typing-with-business-meaning is paid once at DAB.
+We diverge from Daana on one axis: the CLI is Go (not Python). The contract shape (per-column DAS contracts driving typed staging tables, with DAB descriptors layering business semantics on top) follows Daana's pattern.
 
 ## Architectural decisions
 
@@ -36,17 +36,18 @@ New milestones add ADRs as new decisions arise. Existing ADRs are amended via St
 | **dlt does no normalization.** Only `_dlt_id` and `_dlt_load_id` are added; `max_table_nesting=0`, `naming_convention=direct`. These are runner invariants, not YAML knobs. | Source bytes preserved verbatim through to DAB; no provider-specific surprises. |
 | **`__` is the single concern separator** in DuckDB names. Schemas: `<layer>__<source>`. Objects: `<entity>__<role>`. | Consistent, parseable, never collides with snake_case identifiers. |
 | **`Engine` interface from day 1.** Only DuckDB implementation in M1; future engines (Postgres, Databricks via Flight SQL, BigQuery, Fabric) plug in here, possibly via ADBC. | Real portability work is SQL-dialect, not connection protocol — but the interface keeps DuckDB-specific code firewalled. |
-| **The JSONL archive in `_lake/` IS the historization.** No materialized historized table at DAS. | Avoids a parallel source of truth. dlt's filesystem destination is designed as the archive. |
+| **DAS has two sub-stages: landing (forgiving) and staging (strict, contract-driven).** Landing → JSONL archive in `_lake/`. Staging → typed `__historized` tables + `__current` views. | Drift surfaces in DAS, not DAB. DAB rebuilds cheap from a typed audit log. |
 | **No prism-managed state file.** dlt owns incremental cursors; DuckDB holds materialized layers. | Two stateful surfaces, each owned by a tool that already does it well. |
 
 ## Naming conventions
 
 | What | Pattern | Example |
 |---|---|---|
-| Source ID | snake_case, derived from filename | `adventure_works.yml` → `adventure_works` |
-| Entity name in DuckDB | snake_case, auto-converted from source | `Customer` → `customer`, `SalesOrderHeader` → `sales_order_header` |
+| Source ID | snake_case, derived from directory name | `contracts/das/adventure_works/` → `adventure_works` |
+| Entity ID | snake_case, derived from entity-file basename | `customer.yml` → `customer` |
 | Schema (per layer × source) | `<layer>__<source>` | `das__adventure_works`, `dab__adventure_works` |
-| Object suffix | `<entity>__<role>` | `customer__stage`, `customer__address` (descriptor), `customer__order__rel` (relation) |
+| DAS objects | `<entity>__historized` (table), `<entity>__current` (view) | `customer__historized`, `customer__current` |
+| DAB objects | `<entity>` (focal), `<entity>__<descriptor>` (descriptor), `<entity>__<related>__rel` (relation) | `customer`, `customer__address`, `customer__order__rel` |
 | DAR schema | `dar` (single, unified across sources) | `dar.bridge`, `dar.customer__dim`, `dar.sales__fact` |
 
 ## Repository layout (target)
@@ -54,9 +55,11 @@ New milestones add ADRs as new decisions arise. Existing ADRs are amended via St
 ```
 declarative-data-architecture/
 ├── contracts/
-│   ├── das/<source>.yml                  # M1
-│   ├── dab/<concept>.yml                 # M2
-│   └── dar/<...>.yml                     # M3
+│   ├── das/<source>/                     # M1 — one file per entity, plus _source.yml
+│   │   ├── _source.yml
+│   │   └── <entity>.yml
+│   ├── dab/<concept>.yml                 # M2 (shape TBD at M2 brainstorm)
+│   └── dar/<...>.yml                     # M3 (shape TBD at M3 brainstorm)
 ├── _lake/                                # gitignored — dlt filesystem destination
 ├── _pipelines/                           # gitignored — uv-managed venvs
 ├── warehouse.duckdb                      # gitignored — DuckDB single-file
@@ -74,13 +77,13 @@ The `prism` Go source lives in a separate repo. This repo holds only contracts a
 
 **Status:** designed in `specs/2026-05-01-prism-m1-das-design.md`.
 
-**Deliverable:** working `prism` binary that turns `contracts/das/<source>.yml` into a queryable DuckDB façade over a JSONL archive. AdventureWorks OData is the validation dataset.
+**Deliverable:** working `prism` binary that, given per-entity DAS contracts, lands raw JSONL via dlt and produces typed `__historized` tables + `__current` views in DuckDB. Drift detection runs against the typed casts. AdventureWorks OData is the validation dataset.
 
 **Surface:** `prism init`, `prism validate`, `prism doctor`, `prism das discover|land|build|run [<source>] [--all]`, `prism run`.
 
-**DuckDB output:** `das__<source>.<entity>__stage` views (`read_json_auto` over JSONL). No materialization. No per-column schema declared.
+**DuckDB output:** `das__<source>.<entity>__historized` (typed table, append-on-hash) + `das__<source>.<entity>__current` (view, latest per primary key). One per declared entity.
 
-**Key constraint:** typing and business semantics are deferred to M2 — DAS only knows what to land and where.
+**Key constraint:** business semantics (descriptors, atomic context, relationships) deferred to M2. DAS describes only source shape and source typing.
 
 ### M2 — DAB (Data According to Business)
 
@@ -90,16 +93,16 @@ The `prism` Go source lives in a separate repo. This repo holds only contracts a
 
 **New contract layer:** `contracts/dab/`. Includes both:
 - **Model declarations** — focals, descriptors, relations, atomic context (DMDL Model pillar).
-- **Mappings** — projection from `das__<source>.<entity>__stage` columns into descriptor attributes / focal IDFRs (DMDL Mapping pillar). The exact mapping syntax (column refs vs. JSON paths vs. STRUCT navigation) is part of the M2 design.
+- **Mappings** — projection from `das__<source>.<entity>__current` (or `__historized` for full history) typed columns into descriptor attributes and focal IDFRs (DMDL Mapping pillar). Mappings reference DAS column names (`target_name`), not JSON paths.
 
 **DuckDB output:** `dab__<source>.<entity>` (focal IDFR), `dab__<source>.<entity>__<descriptor>`, `dab__<source>.<entity>__<related>__rel`.
 
 **Key design questions to resolve at M2 brainstorm:**
-- Mapping syntax — projecting from stage views (typed scalars + STRUCT/LIST for nested) into descriptors.
+- Mapping syntax — descriptor projection from typed DAS columns; atomic-context grouping; UNIT-coupled values.
 - Where does cross-source identity reconciliation live (e.g., the same Customer in two systems)? In DAB or DAR?
 - How are `TYPE_KEY` registries declared? Inline per descriptor or in a separate `contracts/dab/_types.yml`?
-- Hash canonicalization for change detection — JSON key ordering, type coercion order, NULL handling.
-- DAB-only `prism dab discover` — does it surface what DAS exposes, to scaffold mappings?
+- Bi-temporal column population — `EFF_TMSTP` / `VER_TMSTP` / `SEQ_NBR` derivation from DAS `_loaded_at` or contract-declared timestamps.
+- DAB-only `prism dab discover` — surface DAS columns and propose descriptor scaffolds?
 - Engine interface extensions: `MergeDescriptor`, `UpsertFocal`, dialect-specific hash functions.
 
 ### M3 — DAR (Data According to Requirements)
@@ -131,7 +134,7 @@ The `prism` Go source lives in a separate repo. This repo holds only contracts a
 - `prism run` runs DAS → DAB → DAR end-to-end.
 - Freshness checks (`prism freshness`).
 - Lineage view derived from contracts (`prism lineage [<object>]`).
-- `prism das prune` — drop orphan stage views for entities removed from contracts.
+- `prism das prune` — drop orphan historized tables and current views for entities removed from contracts.
 - Configurable JSONL retention policy.
 - Optional `uv.lock` commit pattern toggle.
 - Concurrent-run safety review (DuckDB exclusive lock).

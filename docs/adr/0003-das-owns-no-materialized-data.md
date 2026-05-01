@@ -1,59 +1,94 @@
-# ADR-003: DAS owns no materialized data; the JSONL archive is the historization
+# ADR-003: DAS has landing + typed staging; drift surfaces in DAS, not DAB
 
 **Date:** 2026-05-01
-**Status:** Accepted
+**Status:** Accepted (revised mid-brainstorm; supersedes the initial draft of this ADR)
 **Milestone:** M1
 
 ## Context
 
-The Daana blog post on contract-driven transformation describes a DAS pattern with two materialized models per source entity: a `historized` (append-only, hash-deduped) table and a `latest` (deduped current) view. Their historized table has typed columns extracted from JSON, with `_record_hash` for dedup.
+We initially proposed that DAS would materialize nothing — only `read_json_auto` views over the JSONL archive — on the theory that the file archive is the historization and that per-column schema at DAS would be redundant with DAB's descriptor declarations.
 
-We initially proposed mirroring this pattern. Two design decisions caused us to reconsider:
+A later read of [The Rise of the Model-Driven Data Engineer](https://blog.daana.dev/blog/the-rise-of-model-driven-data-engineer) and reflection on operational concerns surfaced two problems with that design:
 
-1. **No per-column schema in DAS** — the user's "redundant schema definitions" pushback. Schema-with-business-meaning lives at DAB (focal-framework descriptors). Re-declaring typed columns at DAS to populate a historized table is exactly the redundancy we want to avoid.
-2. **The JSONL files in `_lake/` are already a complete archive.** dlt's filesystem destination writes new files per load, never overwrites. For incremental sources, the union of files is a complete change log; for full-refresh sources, it's every snapshot ever taken. Materializing those into DuckDB creates a parallel source of truth that can drift from the file archive (e.g., if a user deletes JSONL files manually).
+1. **Drift surfaces in the wrong place.** When a source renames `CustomerID` to `account_id`, a view-only DAS doesn't notice. The first failure shows up downstream in DAB, where it looks like a business-mapping bug — confusing to diagnose. The Daana article articulates the right shape: "Ingestion is forgiving (accept all data as JSON); unpacking is strict (contract-driven)." Drift should fail loudly at the layer that has a contract describing the source.
 
-Two surfaces holding the same data is a maintenance burden with no clear win once typing is deferred to DAB.
+2. **DAB cannot be cheaply rebuilt.** With DAS materializing nothing, every DAB rebuild has to re-scan compressed JSONL files, re-infer types, and re-deduplicate from scratch. A typed, deduped, indexed surface at DAS makes DAB recomputation tractable.
+
+The "redundancy" worry that drove the initial ADR was based on a category error: DAS schema and DAB descriptors describe **different things**, not the same thing twice.
+
+| | DAS contract | DAB descriptor |
+|---|---|---|
+| Describes | Source-system shape | Business concept |
+| Fields | `source_path`, `target_name`, `type`, `mode` | descriptor name, descriptor type (e.g. `START_TIMESTAMP`, `UNIT`), atomic context, bi-temporal flag |
+| Question it answers | "Where in the JSON is this, and what was its type on the wire?" | "What does this attribute mean to the business?" |
+| Drift it catches | Source moved/renamed a field, type changed | Business concept changed (rare, deliberate) |
 
 ## Decision
 
-**DAS materializes nothing in DuckDB.** The only DuckDB objects DAS produces are **views**: one per (source, entity), defined as `read_json_auto` over the JSONL glob.
+DAS has **two sub-stages**:
 
-The historization story is:
+### 1. Landing (forgiving)
 
-| Layer | Form | Owner |
+dlt's filesystem destination writes JSONL to `_lake/das/<source>/<entity>/`. No normalization beyond `_dlt_id` and `_dlt_load_id` (see [ADR-002](0002-no-dlt-normalization.md)). This is the immutable raw archive.
+
+### 2. Staging (strict, contract-driven)
+
+Each DAS entity contract carries per-column schema:
+
+```yaml
+schema:
+  primary_key:
+    - CustomerID
+  columns:
+    - source_path: CustomerID
+      target_name: customer_id
+      type: BIGINT
+      mode: REQUIRED
+      description: "Customer master ID"
+```
+
+`prism das build` generates SQL that produces, per entity:
+
+| Object | Type | Purpose |
 |---|---|---|
-| **Archive** (every observation, ever) | Compressed JSONL files in `_lake/` | dlt's filesystem destination |
-| **Stage** (queryable façade) | Views over the archive | DAS |
-| **Bi-temporal projections** (typed, deduped, business-meaningful) | Tables: descriptors with `EFF_TMSTP` / `VER_TMSTP` / `SEQ_NBR`, focal IDFRs | DAB |
+| `das__<source>.<entity>__historized` | typed **table**, append-on-hash | Typed audit log. Drift surfaces here (REQUIRED→NULL detection, cast failures). |
+| `das__<source>.<entity>__current` | **view**: latest row per `primary_key` ordered by `_loaded_at DESC` | Stable typed surface for DAB to consume. |
 
-DAB consumes from `das__<source>.<entity>__stage` (which scans JSONL on every query). When DAB needs performance or deduped access, it materializes its own descriptor tables — which it does anyway as part of the focal framework.
+The historized table's columns are: contract-declared columns (with types from the contract), plus `_record_hash` (PK), `_dlt_id`, `_dlt_load_id`, `_loaded_at`. Inserts are deduped by `_record_hash` (hash of typed values, excluding the metadata columns) using `ON CONFLICT DO NOTHING`.
+
+The historized table is **the typed audit log**, complementing the JSONL archive (which remains the raw, pre-typing record).
 
 ## Consequences
 
 **Positive:**
 
-- Single source of truth for raw history: the file archive on disk.
-- DAS contracts are minimal — provider, base URL, list of entities. No per-column toil.
-- Prism keeps no state file; DuckDB views are derived purely from contracts on every build, dlt owns its incremental cursors. Two stateful surfaces, each owned by a tool already designed for it.
-- Re-running `prism das build` is always safe — no migration logic, no historization to reconcile.
-- Schema drift in DAS is automatic: `union_by_name = true` lets new upstream columns appear in the stage view without intervention.
+- Drift detection happens in DAS, where the contract describes the upstream contract. Failure modes are: cast errors (type changed), NULL in REQUIRED column (field renamed/removed), missing source_path (structure changed). All visible in `prism das build` output and in tier-1 contract tests.
+- DAB rebuilds are cheap. DAB reads from `__current` (a view over indexed historized). No re-parsing of compressed JSONL on each DAB build.
+- Schema redundancy between DAS and DAB is principled, not duplicative — different layers describe different things (see context table above).
+- Three-layer stability: when a source renames a column, only the DAS contract changes; the DAB and DAR layers are insulated. (Daana: "Three-layer architecture provides stability.")
+- Typed audit log enables point-in-time queries directly at DAS — useful for debugging and for DAB recomputation from a specific historical state.
 
 **Negative:**
 
-- Stage view query cost scales with archive size. Every DAB build that scans a stage view pays the JSONL parse cost. Acceptable for AdventureWorks; for very large sources, DAB's materialization is the answer.
-- No queryable PIT structure between landed JSONL and DAB tables — point-in-time history lives in JSONL files, queried via `_dlt_load_id` filtering on the stage view. Less ergonomic than a typed historized table, but adequate.
-- Hash-based dedup must happen in DAB. The DAB layer will hash projected descriptor values, not raw landed rows. (Hash strategy is a known M2 caveat — see roadmap "JSON key-ordering stability".)
+- Contracts grow. Per-entity files with full column declarations. AdventureWorks will produce ~70 files of ~10–30 columns each.
+- Generator complexity: the SQL template library has to handle typed projection and casting from JSON paths. Larger than the view-only path.
+- More DuckDB objects: 2 per entity × ~70 entities for AdventureWorks ≈ 140 objects. Cheap, but they exist.
+
+**Mitigations:**
+
+- `prism das discover` regains its scaffolding role: from upstream metadata (e.g. OData `$metadata`), it generates draft per-entity contracts. The user reviews and commits. Re-discover does drift detection against committed contracts.
+- The type system is intentionally small (`STRING`, `INTEGER`, `BIGINT`, `DECIMAL`, `BOOLEAN`, `DATE`, `TIMESTAMP`, `JSON`). Generator complexity is bounded.
 
 ## Alternatives considered
 
-**A. Daana-blog model: historized + current per entity, with typed columns.** Requires per-column DAS schema. Redundant with DAB's typed descriptors. Rejected.
+**A. View-only DAS (initial draft of this ADR).** Materializes nothing. Simpler. Rejected because (i) drift surfaces in the wrong layer, (ii) DAB rebuilds are expensive without an indexed typed surface, (iii) the redundancy worry conflated DAS source-shape with DAB business-meaning.
 
-**B. Schema-agnostic historized: `_raw` JSON column + `_record_hash` + `_dlt_id` + `_dlt_load_id`.** No typed columns, but a materialized append-only table. Provides indexed dedup surface for DAB. Rejected because: (i) duplicates the file archive's content, creating a second source of truth; (ii) DAB's descriptor materialization already provides a dedup surface; (iii) every full-refresh source bloats the table with re-deduped snapshots over time.
+**B. Typed `__current` only, no `__historized`.** Materialize the latest snapshot only; rely on JSONL archive for history. Rejected because rebuilding DAB from a specific historical state would require reprocessing JSONL through the typed-cast pipeline every time. The `__historized` table is the typed audit log; DAB can rebuild from it cheaply.
 
-**C. No DAS-level DuckDB objects at all.** DAB inlines the `read_json_auto` calls. Rejected because the named view provides a stable, debuggable interface (`SELECT * FROM das__... LIMIT 5` for inspection) and centralizes lake-path resolution.
+**C. Daana exact: typed `historized` + `latest`, change-tracking via a domain timestamp column.** Adopted in spirit. We default to `_loaded_at DESC` for the `__current` ordering, with contract-declared `latest_by:` override planned for post-M1.
 
 ## Related
 
-- [ADR-002](0002-no-dlt-normalization.md) — without normalization, the JSONL archive is a faithful record, which makes "JSONL is the archive" workable.
-- Roadmap §M2 — hash canonicalization and bi-temporal columns are DAB's job.
+- [ADR-002](0002-no-dlt-normalization.md) — landing's invariants. Staging is built on top of the faithful raw archive.
+- [ADR-007](0007-one-yaml-per-source.md) — was revised in step with this ADR. Per-column schema requires per-entity files.
+- Daana blog: [The Rise of the Model-Driven Data Engineer](https://blog.daana.dev/blog/the-rise-of-model-driven-data-engineer).

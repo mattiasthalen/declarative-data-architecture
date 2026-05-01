@@ -1,54 +1,106 @@
-# ADR-007: One YAML file per source; source ID derived from filename
+# ADR-007: One YAML per entity; one `_source.yml` per source
 
 **Date:** 2026-05-01
-**Status:** Accepted
+**Status:** Accepted (revised mid-brainstorm; supersedes the initial draft of this ADR)
 **Milestone:** M1 (sets convention for all milestones)
 
 ## Context
 
-A DAS source declaration carries: provider config (URL, auth, etc.) and a list of entities to land. We need a file layout for `contracts/das/`. Three options:
+A DAS source declaration carries: provider config (URL, auth, etc.) and a list of entities, each with per-column schema (source_path, target_name, type, mode — see [ADR-003](0003-das-owns-no-materialized-data.md)). We need a file layout for `contracts/das/`. Two options remain after ADR-003:
 
-- **One file per source** — `contracts/das/<source>.yml` containing both provider config and entity list.
-- **Two files per source** — `contracts/das/<source>/_source.yml` (provider) + `contracts/das/<source>/entities.yml` (list).
-- **One file per entity** — `contracts/das/<source>/<entity>.yml` (Daana-blog style).
+- **One file per source, all entities inline.** Single-file convenience. With ~70 entities × 10–30 columns, AdventureWorks produces a single ~2,000-line file. Editing, diffing, and reviewing a single concept in that file is hard.
+- **One file per entity, plus a per-source file for provider config.** Daana's pattern (their blog uses one contract per entity). Files are small, focused, and reviewable.
 
-The Daana blog's one-file-per-entity pattern makes sense in their world because each contract carries per-column schema (typed columns, source paths, modes, descriptions) — which can grow large. In our world, ADR-003 deferred per-column schema to DAB, so a DAS entity declaration is essentially just a name plus optional incremental cursor. The Daana-style multi-file layout is overkill for that.
-
-The two-file split was initially proposed on the theory that provider config rarely changes while entity lists evolve. The user pushed back: with so little to declare, the split is needless ceremony.
+The initial draft of this ADR chose one-file-per-source on the assumption that DAS contracts would carry no per-column schema. ADR-003 revised that assumption: per-column schema is now part of the DAS contract. Single-file-per-source no longer works at scale.
 
 ## Decision
 
-**One YAML file per source.** Path: `contracts/das/<source>.yml`. Contains provider config (`source:` block) and entities (`entities:` list).
+**One YAML per entity.** Plus exactly one `_source.yml` per source for provider configuration. Layout:
 
-**Source ID is derived from the filename basename.** `adventure_works.yml` → source ID `adventure_works`. No `id:` field in the YAML itself. Renaming the file renames the source (with corresponding rename of `_lake/das/<source>/` and `_pipelines/<source>/` and the DuckDB schema `das__<source>`).
+```
+contracts/
+└── das/
+    └── adventure_works/
+        ├── _source.yml           # provider, base_url, auth
+        ├── customer.yml          # per-entity contract with columns
+        ├── product.yml
+        ├── sales_order_header.yml
+        └── …
+```
 
-Validation enforces: filename basename matches `^[a-z][a-z0-9_]*$` (snake_case, leading letter).
+**Source ID derives from the directory name** under `contracts/das/`. `contracts/das/adventure_works/` → source ID `adventure_works`.
+
+**Entity ID derives from the filename basename** within the source directory. `customer.yml` → entity ID `customer` → DuckDB tables `das__adventure_works.customer__historized` and `das__adventure_works.customer__current`.
+
+**Filename rules** (validation enforces):
+
+- Source directory and entity filename basenames are snake_case.
+- `_source.yml` is reserved (the leading underscore distinguishes config from entity files).
+- No subdirectories below the source directory in M1.
+
+**Entity file structure:**
+
+```yaml
+# contracts/das/adventure_works/customer.yml
+version: 1
+entity:
+  name: Customer                  # name as upstream exposes it (e.g., OData entity set)
+incremental:                      # optional
+  cursor: ModifiedDate
+  strategy: append
+schema:
+  primary_key:
+    - CustomerID
+  columns:
+    - source_path: CustomerID
+      target_name: customer_id
+      type: BIGINT
+      mode: REQUIRED
+      description: "Customer master ID"
+    - source_path: CompanyName
+      target_name: company_name
+      type: VARCHAR
+      mode: NULLABLE
+```
+
+`entity.name` is the upstream-system name (used by dlt to extract). The DuckDB-side name comes from the filename (snake_case basename), independently. This lets us keep the upstream's casing for extraction while having clean snake_case identifiers in the warehouse.
+
+**`_source.yml` structure:**
+
+```yaml
+# contracts/das/adventure_works/_source.yml
+version: 1
+source:
+  provider: odata
+  base_url: https://demodata.grapecity.com/adventureworks/odata/v1/
+```
 
 ## Consequences
 
 **Positive:**
 
-- One file to read for everything about a source.
-- One source of truth for the source's identity — the filename. No risk of `id:` field drifting from filename.
-- Renaming a source is a single `git mv` (plus prism cleanup of the old DuckDB schema and `_lake` directory if desired).
-- Layout is consistent across layers — `contracts/<layer>/<thing>.yml`.
-- Adding an entity to a source is a single-line append to `entities:`. Removing one is a single-line delete.
+- Each entity is a focused, reviewable file. Adding a column is a one-line edit in the right file; renaming an entity is a `git mv`.
+- `prism das discover` can write per-entity scaffolds idempotently — generating one file per discovered entity, leaving any existing files alone unless `--update` is passed.
+- Drift detection per-entity is natural: `prism validate` and `prism das build` can produce per-file errors, not "line 1247 of source.yml".
+- Convention extends cleanly: M2 will likely follow `contracts/dab/<concept>/<thing>.yml`, M3 follows `contracts/dar/<thing>.yml`.
 
 **Negative:**
 
-- Files can grow long for sources with many entities. AdventureWorks has ~70 entity sets; the file is still manageable (one line per entity in the simple case). If a future provider needs significantly more per-entity config, the file gets noisier.
-- Less granular git history per entity — adding/removing entities all show up as edits to the same file rather than file additions/deletions.
-
-**Acceptable because:** with no per-column schema in DAS, per-entity declarations are trivially small. If a source ever grows so large or so complex per-entity that this breaks down, we revisit (e.g., split into `contracts/das/<source>/main.yml` + a directory of entity files for that one source). M1 doesn't need that complexity.
+- File proliferation. AdventureWorks produces ~70 entity files plus 1 source file. Manageable, but it's many files. Modern editors and `git` handle this fine; humans skimming a directory listing don't.
+- Two filename conventions in the same directory (`_source.yml` reserved, `<entity>.yml` for entities). Slight cognitive load; mitigated by the leading-underscore convention.
+- Source-level config and entity-level config live in separate files. Cross-cutting changes touch multiple files. Acceptable: cross-cutting changes are rare; per-entity edits are common.
 
 ## Alternatives considered
 
-**A. Two files per source** (`_source.yml` + `entities.yml`). Marginal benefit at best; entity lists aren't long enough to justify a separate file. Rejected.
+**A. One YAML per source, all entities inline.** Initial draft of this ADR. With per-column schema (ADR-003), files become unmanageably large. Rejected.
 
-**B. One file per entity** (`contracts/das/<source>/<entity>.yml`). Daana-blog pattern. Justified there because of per-column schema; not justified here. Rejected.
+**B. Subdirectories per entity** (`contracts/das/adventure_works/customer/{schema,incremental}.yml`). Over-decomposed for M1. Rejected.
 
-**C. Required `id:` field that must match filename.** Belt-and-braces, but the validation rule "filename matches `id:`" is exactly the redundancy this ADR removes. Rejected.
+**C. Source ID and entity name in the YAML body** (a `source: <id>` and `entity: <id>` field, with filename free-form). Adds redundancy and a class of validation errors ("filename doesn't match `id:` field"). Filename-derived is cleaner; rename = `git mv`. Rejected.
+
+**D. PascalCase entity files** (`Customer.yml`). Inconsistent with the warehouse-side snake_case convention (ADR-005). Rejected.
 
 ## Related
 
-- [ADR-003](0003-das-owns-no-materialized-data.md) — the no-per-column-schema decision is what makes this layout feasible.
+- [ADR-003](0003-das-owns-no-materialized-data.md) — per-column schema requires per-entity files; the ADRs were revised together.
+- [ADR-005](0005-double-underscore-as-concern-separator.md) — naming convention for the resulting DuckDB objects.

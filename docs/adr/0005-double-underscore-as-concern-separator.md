@@ -22,7 +22,7 @@ Single-underscore separators (e.g., `das_adventure_works_customer`) collide with
 | Position | Pattern | Example |
 |---|---|---|
 | Schema | `<layer>__<source>` | `das__adventure_works`, `dab__adventure_works` |
-| Object in schema | `<entity>__<role>` (when role exists) or `<entity>` (when canonical) | `customer__stage`, `customer__address` (descriptor), `customer__order__rel` (relation) |
+| Object in schema | `<entity>__<role>` (when role exists) or `<entity>` (when canonical) | `customer__historized` (table), `customer__current` (view), `customer__address` (DAB descriptor), `customer__order__rel` (DAB relation) |
 | DAR schema | `dar` (single, unified across sources) | `dar.bridge`, `dar.customer__dim`, `dar.sales__fact` |
 
 Source IDs and entity names are snake_case (single underscore) within a segment; multi-segment composition uses `__`.
