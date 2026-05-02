@@ -1,0 +1,23 @@
+version: 1
+entity:
+  name: Customer
+  description: Customer master data
+incremental:
+  cursor: ModifiedDate
+  strategy: append
+schema:
+  primary_key:
+    - customer_id
+  columns:
+    - source_path: CustomerID
+      target_name: customer_id
+      type: BIGINT
+      mode: REQUIRED
+    - source_path: CompanyName
+      target_name: company_name
+      type: STRING
+      mode: NULLABLE
+    - source_path: ModifiedDate
+      target_name: modified_date
+      type: TIMESTAMP
+      mode: REQUIRED
