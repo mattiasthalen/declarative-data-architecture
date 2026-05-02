@@ -1,0 +1,4 @@
+version: 1
+source:
+  provider: odata
+  base_url: https://api.example/odata/v1/
