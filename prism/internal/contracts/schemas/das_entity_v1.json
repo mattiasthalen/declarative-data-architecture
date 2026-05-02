@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prism.dev/schemas/das_entity_v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "entity", "schema"],
+  "properties": {
+    "version": {"const": 1},
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "description": {"type": "string"}
+      }
+    },
+    "incremental": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cursor", "strategy"],
+      "properties": {
+        "cursor": {"type": "string", "minLength": 1},
+        "strategy": {"type": "string", "enum": ["append", "replace"]}
+      }
+    },
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_key", "columns"],
+      "properties": {
+        "primary_key": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"}
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_path", "target_name", "type", "mode"],
+            "properties": {
+              "source_path": {"type": "string", "minLength": 1},
+              "target_name": {"type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"},
+              "type": {"type": "string", "minLength": 1},
+              "mode": {"type": "string", "enum": ["REQUIRED", "NULLABLE"]},
+              "description": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
