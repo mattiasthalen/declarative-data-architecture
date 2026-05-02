@@ -1,0 +1,4 @@
+version: 1
+source:
+  provider: odata
+  base_url: https://demodata.grapecity.com/adventureworks/odata/v1/

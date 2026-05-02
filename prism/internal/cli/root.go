@@ -8,8 +8,7 @@ import (
 	"github.com/prism-data/prism/internal/version"
 )
 
-// NewRoot returns the top-level cobra command. Sub-commands are added via
-// init() functions in their own files.
+// NewRoot returns the top-level cobra command.
 func NewRoot() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "prism",
@@ -18,5 +17,8 @@ func NewRoot() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
+	addInit(root)
+	addValidate(root)
+	addDoctor(root)
 	return root
 }

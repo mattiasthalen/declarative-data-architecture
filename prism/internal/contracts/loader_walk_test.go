@@ -10,9 +10,9 @@ import (
 )
 
 func TestLoadAll(t *testing.T) {
-	bundle, err := LoadAll(filepath.FromSlash("../../testdata/contracts/valid"))
+	bundle, err := LoadAll(filepath.FromSlash("../../testdata/contracts/valid/das"))
 	require.NoError(t, err)
-	require.Len(t, bundle, 1, "expect exactly one source under valid/")
+	require.Len(t, bundle, 1, "expect exactly one source under valid/das/")
 	src := bundle[0]
 	assert.Equal(t, "adventure_works", src.SourceID)
 	require.NotNil(t, src.Source)
