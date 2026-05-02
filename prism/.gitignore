@@ -1,0 +1,19 @@
+# Build artifacts
+/dist/
+/prism
+*.exe
+*.test
+*.out
+coverage.*
+
+# Python venvs (extracted runner cache during dev)
+/.cache/
+__pycache__/
+*.py[cod]
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
