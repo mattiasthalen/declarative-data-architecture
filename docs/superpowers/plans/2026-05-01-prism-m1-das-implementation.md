@@ -182,7 +182,7 @@ git add .gitignore go.mod LICENSE Makefile README.md
 - [ ] **Step 7: Commit**
 
 ```bash
-cd prism && git commit -m "chore: scaffold prism Go module"
+cd /home/user/declarative-data-architecture && git commit -m "chore: scaffold prism Go module"
 ```
 
 ---
@@ -324,7 +324,7 @@ Expected: all tests PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/naming/ go.mod go.sum && git commit -m "feat(naming): snake_case conversion + identifier validation"
+cd /home/user/declarative-data-architecture && git add prism/internal/naming/ prism/go.mod prism/go.sum && git commit -m "feat(naming): snake_case conversion + identifier validation"
 ```
 
 ---
@@ -475,7 +475,7 @@ Expected: all tests PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd prism && git add internal/types/ && git commit -m "feat(types): canonical prism type system + DuckDB mapping"
+cd /home/user/declarative-data-architecture && git add prism/internal/types/ && git commit -m "feat(types): canonical prism type system + DuckDB mapping"
 ```
 
 ---
@@ -678,7 +678,7 @@ Expected: all tests PASS.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd prism && git add internal/contracts/ testdata/contracts/ go.mod go.sum && git commit -m "feat(contracts): Source/Entity types + YAML loaders"
+cd /home/user/declarative-data-architecture && git add prism/internal/contracts/ prism/testdata/contracts/ prism/go.mod prism/go.sum && git commit -m "feat(contracts): Source/Entity types + YAML loaders"
 ```
 
 ---
@@ -1014,7 +1014,7 @@ Expected: all tests PASS.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd prism && git add internal/contracts/ testdata/contracts/invalid/ go.mod go.sum && git commit -m "feat(contracts): JSON Schema validation + cross-field checks"
+cd /home/user/declarative-data-architecture && git add prism/internal/contracts/ prism/testdata/contracts/invalid/ prism/go.mod prism/go.sum && git commit -m "feat(contracts): JSON Schema validation + cross-field checks"
 ```
 
 ---
@@ -1212,7 +1212,7 @@ Expected: all tests PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/contracts/ && git commit -m "feat(contracts): LoadAll walks contracts/das/<source>/{_source,<entity>}.yml"
+cd /home/user/declarative-data-architecture && git add prism/internal/contracts/ && git commit -m "feat(contracts): LoadAll walks contracts/das/<source>/{_source,<entity>}.yml"
 ```
 
 ---
@@ -1301,7 +1301,7 @@ Expected: no errors.
 - [ ] **Step 4: Commit**
 
 ```bash
-cd prism && git add internal/engine/ && git commit -m "feat(engine): Engine + Dialect interfaces and spec structs"
+cd /home/user/declarative-data-architecture && git add prism/internal/engine/ && git commit -m "feat(engine): Engine + Dialect interfaces and spec structs"
 ```
 
 
@@ -1537,7 +1537,7 @@ Expected: all PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/tmpl/ && git commit -m "feat(tmpl/duckdb): SQL templates + golden-file tests"
+cd /home/user/declarative-data-architecture && git add prism/internal/tmpl/ && git commit -m "feat(tmpl/duckdb): SQL templates + golden-file tests"
 ```
 
 
@@ -1747,7 +1747,7 @@ Expected: PASS. If cgo errors occur, install gcc (Linux) / Xcode CLT (macOS) / T
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/engine/duckdb/ testdata/jsonl/ go.mod go.sum && git commit -m "feat(engine/duckdb): DuckDB engine + dialect + round-trip test"
+cd /home/user/declarative-data-architecture && git add prism/internal/engine/duckdb/ prism/testdata/jsonl/ prism/go.mod prism/go.sum && git commit -m "feat(engine/duckdb): DuckDB engine + dialect + round-trip test"
 ```
 
 
@@ -1906,7 +1906,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): events.py + pyproject.toml.tmpl scaffold"
+cd /home/user/declarative-data-architecture && git add prism/runtime/dlt_runner/ && git commit -m "feat(runner): events.py + pyproject.toml.tmpl scaffold"
 ```
 
 
@@ -2045,7 +2045,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add runtime/dlt_runner/providers/ runtime/dlt_runner/tests/test_providers_odata.py && git commit -m "feat(runner/providers): odata source factory with locked invariants"
+cd /home/user/declarative-data-architecture && git add prism/runtime/dlt_runner/providers/ prism/runtime/dlt_runner/tests/test_providers_odata.py && git commit -m "feat(runner/providers): odata source factory with locked invariants"
 ```
 
 
@@ -2285,7 +2285,7 @@ Expected: all PASS (events + odata + runner).
 - [ ] **Step 7: Commit**
 
 ```bash
-cd prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): runner.py + __main__.py with invariants and event emission"
+cd /home/user/declarative-data-architecture && git add prism/runtime/dlt_runner/ && git commit -m "feat(runner): runner.py + __main__.py with invariants and event emission"
 ```
 
 
@@ -2428,7 +2428,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd prism && git add internal/pipeline/ && git commit -m "feat(pipeline): uv detection + version floor check"
+cd /home/user/declarative-data-architecture && git add prism/internal/pipeline/ && git commit -m "feat(pipeline): uv detection + version floor check"
 ```
 
 
@@ -2587,7 +2587,7 @@ Expected: PASS. If embed errors say "no matching files" check the symlink target
 - [ ] **Step 7: Commit**
 
 ```bash
-cd prism && git add internal/pipeline/extract.go internal/pipeline/extract_test.go internal/pipeline/runtime_dlt_runner && git commit -m "feat(pipeline): embed + extract Python runner to cache dir"
+cd /home/user/declarative-data-architecture && git add prism/internal/pipeline/extract.go prism/internal/pipeline/extract_test.go prism/internal/pipeline/runtime_dlt_runner && git commit -m "feat(pipeline): embed + extract Python runner to cache dir"
 ```
 
 
@@ -2746,7 +2746,7 @@ Expected: PASS (UVSync isn't tested here — that requires a real uv venv; cover
 - [ ] **Step 5: Commit**
 
 ```bash
-cd prism && git add internal/pipeline/sync.go internal/pipeline/sync_test.go && git commit -m "feat(pipeline): synthesize pyproject.toml + uv sync wrapper"
+cd /home/user/declarative-data-architecture && git add prism/internal/pipeline/sync.go prism/internal/pipeline/sync_test.go && git commit -m "feat(pipeline): synthesize pyproject.toml + uv sync wrapper"
 ```
 
 
@@ -3005,7 +3005,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd prism && git add internal/events/ internal/pipeline/run.go internal/pipeline/run_test.go && git commit -m "feat(pipeline,events): runner subprocess + JSONL event parser"
+cd /home/user/declarative-data-architecture && git add prism/internal/events/ prism/internal/pipeline/run.go prism/internal/pipeline/run_test.go && git commit -m "feat(pipeline,events): runner subprocess + JSONL event parser"
 ```
 
 
@@ -3125,7 +3125,7 @@ Expected: PASS, builds clean.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd prism && git add cmd/ internal/cli/root.go internal/cli/root_test.go internal/version/ go.mod go.sum && git commit -m "feat(cli): cobra scaffold + --version"
+cd /home/user/declarative-data-architecture && git add prism/cmd/ prism/internal/cli/root.go prism/internal/cli/root_test.go prism/internal/version/ prism/go.mod prism/go.sum && git commit -m "feat(cli): cobra scaffold + --version"
 ```
 
 
@@ -3304,7 +3304,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/cli/ && git commit -m "feat(cli): prism init"
+cd /home/user/declarative-data-architecture && git add prism/internal/cli/ && git commit -m "feat(cli): prism init"
 ```
 
 
@@ -3410,7 +3410,7 @@ Expected: PASS for `valid`; PASS (i.e., asserts the error) for `invalid`.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/cli/validate.go internal/cli/validate_test.go internal/cli/root.go && git commit -m "feat(cli): prism validate"
+cd /home/user/declarative-data-architecture && git add prism/internal/cli/validate.go prism/internal/cli/validate_test.go prism/internal/cli/root.go && git commit -m "feat(cli): prism validate"
 ```
 
 
@@ -3504,7 +3504,7 @@ Checking environment…
 - [ ] **Step 4: Commit**
 
 ```bash
-cd prism && git add internal/cli/doctor.go internal/cli/root.go && git commit -m "feat(cli): prism doctor"
+cd /home/user/declarative-data-architecture && git add prism/internal/cli/doctor.go prism/internal/cli/root.go && git commit -m "feat(cli): prism doctor"
 ```
 
 
@@ -4075,7 +4075,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/cli/das_build.go internal/cli/das_build_test.go internal/cli/root.go && git commit -m "feat(cli): prism das build (DDL + append + current view per entity)"
+cd /home/user/declarative-data-architecture && git add prism/internal/cli/das_build.go prism/internal/cli/das_build_test.go prism/internal/cli/root.go && git commit -m "feat(cli): prism das build (DDL + append + current view per entity)"
 ```
 
 
@@ -4227,7 +4227,7 @@ Expected: clean build. (No automated test for `land` — covered by E2E in Task 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd prism && git add internal/cli/das_land.go internal/cli/root.go && git commit -m "feat(cli): prism das land (uv venv + dlt runner orchestration)"
+cd /home/user/declarative-data-architecture && git add prism/internal/cli/das_land.go prism/internal/cli/root.go && git commit -m "feat(cli): prism das land (uv venv + dlt runner orchestration)"
 ```
 
 
@@ -4348,7 +4348,7 @@ Expected: help output lists `init`, `validate`, `doctor`, `das`, `run`. `prism d
 - [ ] **Step 5: Commit**
 
 ```bash
-cd prism && git add internal/cli/das_run.go internal/cli/run.go internal/cli/root.go && git commit -m "feat(cli): prism das run + prism run"
+cd /home/user/declarative-data-architecture && git add prism/internal/cli/das_run.go prism/internal/cli/run.go prism/internal/cli/root.go && git commit -m "feat(cli): prism das run + prism run"
 ```
 
 
@@ -4541,7 +4541,7 @@ for _, r := range results {
 - [ ] **Step 6: Commit**
 
 ```bash
-cd prism && git add internal/drift/ internal/cli/das_build.go && git commit -m "feat(drift): NULL-in-REQUIRED detector + post-build invocation"
+cd /home/user/declarative-data-architecture && git add prism/internal/drift/ prism/internal/cli/das_build.go && git commit -m "feat(drift): NULL-in-REQUIRED detector + post-build invocation"
 ```
 
 
@@ -4687,7 +4687,7 @@ Expected: PASS, takes 1–5 minutes against the live endpoint. If the AdventureW
 - [ ] **Step 3: Commit**
 
 ```bash
-cd prism && git add cmd/prism/e2e_test.go && git commit -m "test(e2e): AdventureWorks end-to-end pipeline (gated by -tags=e2e)"
+cd /home/user/declarative-data-architecture && git add prism/cmd/prism/e2e_test.go && git commit -m "test(e2e): AdventureWorks end-to-end pipeline (gated by -tags=e2e)"
 ```
 
 
