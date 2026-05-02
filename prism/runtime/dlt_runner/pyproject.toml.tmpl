@@ -1,0 +1,17 @@
+[project]
+name = "prism-pipeline-{{source_id}}"
+version = "0.0.0"
+description = "prism-managed dlt pipeline for source {{source_id}}"
+requires-python = ">=3.11"
+dependencies = [
+{{#each dlt_extras}}
+    "dlt[{{this}}]>=1.5",
+{{/each}}
+    "pyyaml>=6.0",
+]
+
+[tool.uv.sources]
+prism-dlt-runner = { path = "{{runner_path}}" }
+
+[project.optional-dependencies]
+prism-runner = ["prism-dlt-runner"]
