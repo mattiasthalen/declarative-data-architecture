@@ -10,14 +10,14 @@
 - Go 1.22+, [cobra](https://github.com/spf13/cobra) v1.8+, [yaml.v3](https://pkg.go.dev/gopkg.in/yaml.v3) v3.0.1, [jsonschema/v6](https://github.com/santhosh-tekuri/jsonschema), [go-duckdb/v2](https://github.com/marcboeker/go-duckdb), [testify](https://github.com/stretchr/testify) v1.9+
 - Python 3.11+, [uv](https://docs.astral.sh/uv/) 0.5+, [dlt](https://dlthub.com) 1.5+ with `[filesystem]` extra, pytest
 
-**Where work happens:** This plan operates in a fresh prism Go repo at `~/prism/` (created in Task 1). The warehouse repo (`docs/superpowers/specs/...`) is read-only context. Use absolute paths in shell commands; relative paths in code/tests.
+**Where work happens:** This plan operates in a fresh prism Go repo at `prism/` (created in Task 1). The warehouse repo (`docs/superpowers/specs/...`) is read-only context. Use absolute paths in shell commands; relative paths in code/tests.
 
 ---
 
 ## File structure (target by end of plan)
 
 ```
-~/prism/
+prism/
 ├── go.mod, go.sum, .gitignore, LICENSE, README.md, Makefile
 ├── cmd/prism/main.go                     # CLI entry, wires cobra
 ├── internal/
@@ -59,19 +59,19 @@
 ### Task 1: Initialize the prism Go repo
 
 **Files:**
-- Create: `~/prism/.gitignore`
-- Create: `~/prism/go.mod`
-- Create: `~/prism/LICENSE`
-- Create: `~/prism/README.md`
-- Create: `~/prism/Makefile`
+- Create: `prism/.gitignore`
+- Create: `prism/go.mod`
+- Create: `prism/LICENSE`
+- Create: `prism/README.md`
+- Create: `prism/Makefile`
 
 - [ ] **Step 1: Create the directory and init git**
 
 ```bash
-mkdir -p ~/prism && cd ~/prism && git init -b main
+mkdir -p ~/prism && cd prism && git init -b main
 ```
 
-- [ ] **Step 2: Create `~/prism/.gitignore`**
+- [ ] **Step 2: Create `prism/.gitignore`**
 
 ```
 # Build artifacts
@@ -95,7 +95,7 @@ __pycache__/
 .DS_Store
 ```
 
-- [ ] **Step 3: Create `~/prism/Makefile`**
+- [ ] **Step 3: Create `prism/Makefile`**
 
 ```makefile
 .PHONY: build test test-unit test-py test-e2e fmt vet lint tidy
@@ -124,7 +124,7 @@ tidy:
 	go mod tidy
 ```
 
-- [ ] **Step 4: Create `~/prism/LICENSE`** (MIT)
+- [ ] **Step 4: Create `prism/LICENSE`** (MIT)
 
 ```
 MIT License
@@ -150,7 +150,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-- [ ] **Step 5: Create `~/prism/README.md` (stub)**
+- [ ] **Step 5: Create `prism/README.md` (stub)**
 
 ```markdown
 # prism
@@ -175,14 +175,14 @@ M1 (DAS) under active development.
 - [ ] **Step 6: `go mod init` and stage**
 
 ```bash
-cd ~/prism && go mod init github.com/prism-data/prism
+cd prism && go mod init github.com/prism-data/prism
 git add .gitignore go.mod LICENSE Makefile README.md
 ```
 
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/prism && git commit -m "chore: scaffold prism Go module"
+cd prism && git commit -m "chore: scaffold prism Go module"
 ```
 
 ---
@@ -194,13 +194,13 @@ Tasks 2–9 build the offline core: naming, type system, contracts, engine inter
 ### Task 2: Naming utilities
 
 **Files:**
-- Create: `~/prism/internal/naming/naming.go`
-- Create: `~/prism/internal/naming/naming_test.go`
+- Create: `prism/internal/naming/naming.go`
+- Create: `prism/internal/naming/naming_test.go`
 
 - [ ] **Step 1: Write the failing tests**
 
 ```go
-// ~/prism/internal/naming/naming_test.go
+// prism/internal/naming/naming_test.go
 package naming
 
 import (
@@ -246,7 +246,7 @@ func TestValidateSnakeCaseIdentifier(t *testing.T) {
 - [ ] **Step 2: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/naming/ -v
+cd prism && go test ./internal/naming/ -v
 ```
 
 Expected: FAIL — `naming.go` does not exist.
@@ -254,7 +254,7 @@ Expected: FAIL — `naming.go` does not exist.
 - [ ] **Step 3: Implement**
 
 ```go
-// ~/prism/internal/naming/naming.go
+// prism/internal/naming/naming.go
 package naming
 
 import (
@@ -310,13 +310,13 @@ func ValidateSnakeCaseIdentifier(s string) error {
 - [ ] **Step 4: Add testify dependency**
 
 ```bash
-cd ~/prism && go get github.com/stretchr/testify@v1.9.0
+cd prism && go get github.com/stretchr/testify@v1.9.0
 ```
 
 - [ ] **Step 5: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/naming/ -v
+cd prism && go test ./internal/naming/ -v
 ```
 
 Expected: all tests PASS.
@@ -324,7 +324,7 @@ Expected: all tests PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/naming/ go.mod go.sum && git commit -m "feat(naming): snake_case conversion + identifier validation"
+cd prism && git add internal/naming/ go.mod go.sum && git commit -m "feat(naming): snake_case conversion + identifier validation"
 ```
 
 ---
@@ -332,13 +332,13 @@ cd ~/prism && git add internal/naming/ go.mod go.sum && git commit -m "feat(nami
 ### Task 3: Canonical type system
 
 **Files:**
-- Create: `~/prism/internal/types/types.go`
-- Create: `~/prism/internal/types/types_test.go`
+- Create: `prism/internal/types/types.go`
+- Create: `prism/internal/types/types_test.go`
 
 - [ ] **Step 1: Write the failing tests**
 
 ```go
-// ~/prism/internal/types/types_test.go
+// prism/internal/types/types_test.go
 package types
 
 import (
@@ -392,7 +392,7 @@ func TestParseUnknown(t *testing.T) {
 - [ ] **Step 2: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/types/ -v
+cd prism && go test ./internal/types/ -v
 ```
 
 Expected: FAIL — `types.go` does not exist.
@@ -400,7 +400,7 @@ Expected: FAIL — `types.go` does not exist.
 - [ ] **Step 3: Implement**
 
 ```go
-// ~/prism/internal/types/types.go
+// prism/internal/types/types.go
 // Package types defines prism's small canonical type system and its mapping to
 // engine-specific SQL types. M1 supports DuckDB only.
 package types
@@ -467,7 +467,7 @@ func (t Type) DuckDBType() string {
 - [ ] **Step 4: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/types/ -v
+cd prism && go test ./internal/types/ -v
 ```
 
 Expected: all tests PASS.
@@ -475,7 +475,7 @@ Expected: all tests PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/prism && git add internal/types/ && git commit -m "feat(types): canonical prism type system + DuckDB mapping"
+cd prism && git add internal/types/ && git commit -m "feat(types): canonical prism type system + DuckDB mapping"
 ```
 
 ---
@@ -483,20 +483,20 @@ cd ~/prism && git add internal/types/ && git commit -m "feat(types): canonical p
 ### Task 4: Contracts package — Source and Entity types + YAML loader
 
 **Files:**
-- Create: `~/prism/internal/contracts/source.go`
-- Create: `~/prism/internal/contracts/entity.go`
-- Create: `~/prism/internal/contracts/loader.go`
-- Create: `~/prism/internal/contracts/loader_test.go`
-- Create: `~/prism/testdata/contracts/valid/adventure_works/_source.yml`
-- Create: `~/prism/testdata/contracts/valid/adventure_works/customer.yml`
+- Create: `prism/internal/contracts/source.go`
+- Create: `prism/internal/contracts/entity.go`
+- Create: `prism/internal/contracts/loader.go`
+- Create: `prism/internal/contracts/loader_test.go`
+- Create: `prism/testdata/contracts/valid/adventure_works/_source.yml`
+- Create: `prism/testdata/contracts/valid/adventure_works/customer.yml`
 
 - [ ] **Step 1: Add yaml.v3 dependency**
 
 ```bash
-cd ~/prism && go get gopkg.in/yaml.v3@v3.0.1
+cd prism && go get gopkg.in/yaml.v3@v3.0.1
 ```
 
-- [ ] **Step 2: Create fixture `~/prism/testdata/contracts/valid/adventure_works/_source.yml`**
+- [ ] **Step 2: Create fixture `prism/testdata/contracts/valid/adventure_works/_source.yml`**
 
 ```yaml
 version: 1
@@ -505,7 +505,7 @@ source:
   base_url: https://demodata.grapecity.com/adventureworks/odata/v1/
 ```
 
-- [ ] **Step 3: Create fixture `~/prism/testdata/contracts/valid/adventure_works/customer.yml`**
+- [ ] **Step 3: Create fixture `prism/testdata/contracts/valid/adventure_works/customer.yml`**
 
 ```yaml
 version: 1
@@ -536,7 +536,7 @@ schema:
 - [ ] **Step 4: Write the failing tests**
 
 ```go
-// ~/prism/internal/contracts/loader_test.go
+// prism/internal/contracts/loader_test.go
 package contracts
 
 import (
@@ -572,7 +572,7 @@ func TestLoadEntity(t *testing.T) {
 - [ ] **Step 5: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/contracts/ -v
+cd prism && go test ./internal/contracts/ -v
 ```
 
 Expected: FAIL — package doesn't exist.
@@ -580,7 +580,7 @@ Expected: FAIL — package doesn't exist.
 - [ ] **Step 6: Implement source/entity types and loaders**
 
 ```go
-// ~/prism/internal/contracts/source.go
+// prism/internal/contracts/source.go
 package contracts
 
 // Source is the parsed shape of a `_source.yml` file.
@@ -596,7 +596,7 @@ type SourceConfig struct {
 ```
 
 ```go
-// ~/prism/internal/contracts/entity.go
+// prism/internal/contracts/entity.go
 package contracts
 
 // Entity is the parsed shape of a per-entity `<name>.yml` file.
@@ -632,7 +632,7 @@ type Column struct {
 ```
 
 ```go
-// ~/prism/internal/contracts/loader.go
+// prism/internal/contracts/loader.go
 package contracts
 
 import (
@@ -670,7 +670,7 @@ func LoadEntity(path string) (*Entity, error) {
 - [ ] **Step 7: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/contracts/ -v
+cd prism && go test ./internal/contracts/ -v
 ```
 
 Expected: all tests PASS.
@@ -678,7 +678,7 @@ Expected: all tests PASS.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd ~/prism && git add internal/contracts/ testdata/contracts/ go.mod go.sum && git commit -m "feat(contracts): Source/Entity types + YAML loaders"
+cd prism && git add internal/contracts/ testdata/contracts/ go.mod go.sum && git commit -m "feat(contracts): Source/Entity types + YAML loaders"
 ```
 
 ---
@@ -686,17 +686,17 @@ cd ~/prism && git add internal/contracts/ testdata/contracts/ go.mod go.sum && g
 ### Task 5: JSON Schema validation (embedded)
 
 **Files:**
-- Create: `~/prism/internal/contracts/schemas/das_source_v1.json`
-- Create: `~/prism/internal/contracts/schemas/das_entity_v1.json`
-- Create: `~/prism/internal/contracts/validate.go`
-- Create: `~/prism/internal/contracts/validate_test.go`
-- Create: `~/prism/testdata/contracts/invalid/missing_provider/_source.yml`
-- Create: `~/prism/testdata/contracts/invalid/duplicate_target_name/customer.yml`
+- Create: `prism/internal/contracts/schemas/das_source_v1.json`
+- Create: `prism/internal/contracts/schemas/das_entity_v1.json`
+- Create: `prism/internal/contracts/validate.go`
+- Create: `prism/internal/contracts/validate_test.go`
+- Create: `prism/testdata/contracts/invalid/missing_provider/_source.yml`
+- Create: `prism/testdata/contracts/invalid/duplicate_target_name/customer.yml`
 
 - [ ] **Step 1: Create JSON Schema for `_source.yml`**
 
 ```json
-// ~/prism/internal/contracts/schemas/das_source_v1.json
+// prism/internal/contracts/schemas/das_source_v1.json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://prism.dev/schemas/das_source_v1.json",
@@ -721,7 +721,7 @@ cd ~/prism && git add internal/contracts/ testdata/contracts/ go.mod go.sum && g
 - [ ] **Step 2: Create JSON Schema for entity contracts**
 
 ```json
-// ~/prism/internal/contracts/schemas/das_entity_v1.json
+// prism/internal/contracts/schemas/das_entity_v1.json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://prism.dev/schemas/das_entity_v1.json",
@@ -783,19 +783,19 @@ cd ~/prism && git add internal/contracts/ testdata/contracts/ go.mod go.sum && g
 - [ ] **Step 3: Add jsonschema/v6 dep**
 
 ```bash
-cd ~/prism && go get github.com/santhosh-tekuri/jsonschema/v6@latest
+cd prism && go get github.com/santhosh-tekuri/jsonschema/v6@latest
 ```
 
 - [ ] **Step 4: Create invalid fixtures**
 
-`~/prism/testdata/contracts/invalid/missing_provider/_source.yml`:
+`prism/testdata/contracts/invalid/missing_provider/_source.yml`:
 ```yaml
 version: 1
 source:
   base_url: https://example.com/
 ```
 
-`~/prism/testdata/contracts/invalid/duplicate_target_name/customer.yml`:
+`prism/testdata/contracts/invalid/duplicate_target_name/customer.yml`:
 ```yaml
 version: 1
 entity:
@@ -816,7 +816,7 @@ schema:
 - [ ] **Step 5: Write the failing tests**
 
 ```go
-// ~/prism/internal/contracts/validate_test.go
+// prism/internal/contracts/validate_test.go
 package contracts
 
 import (
@@ -887,7 +887,7 @@ func TestValidateEntityUnknownType(t *testing.T) {
 - [ ] **Step 6: Implement validator**
 
 ```go
-// ~/prism/internal/contracts/validate.go
+// prism/internal/contracts/validate.go
 package contracts
 
 import (
@@ -1006,7 +1006,7 @@ func yamlNodeToJSON(n *yaml.Node) ([]byte, error) {
 - [ ] **Step 7: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/contracts/ -v
+cd prism && go test ./internal/contracts/ -v
 ```
 
 Expected: all tests PASS.
@@ -1014,7 +1014,7 @@ Expected: all tests PASS.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd ~/prism && git add internal/contracts/ testdata/contracts/invalid/ go.mod go.sum && git commit -m "feat(contracts): JSON Schema validation + cross-field checks"
+cd prism && git add internal/contracts/ testdata/contracts/invalid/ go.mod go.sum && git commit -m "feat(contracts): JSON Schema validation + cross-field checks"
 ```
 
 ---
@@ -1022,13 +1022,13 @@ cd ~/prism && git add internal/contracts/ testdata/contracts/invalid/ go.mod go.
 ### Task 6: Walk-the-tree contracts loader
 
 **Files:**
-- Modify: `~/prism/internal/contracts/loader.go` (add `LoadAll`)
-- Create: `~/prism/internal/contracts/loader_walk_test.go`
+- Modify: `prism/internal/contracts/loader.go` (add `LoadAll`)
+- Create: `prism/internal/contracts/loader_walk_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
 ```go
-// ~/prism/internal/contracts/loader_walk_test.go
+// prism/internal/contracts/loader_walk_test.go
 package contracts
 
 import (
@@ -1067,7 +1067,7 @@ func TestLoadAllRejectsBadDirName(t *testing.T) {
 - [ ] **Step 2: Add the test helper**
 
 ```go
-// ~/prism/internal/contracts/loader_walk_test.go (continued)
+// prism/internal/contracts/loader_walk_test.go (continued)
 import "os"
 
 func mkSourceTree(t *testing.T, dir string) error {
@@ -1085,14 +1085,14 @@ func mkSourceTree(t *testing.T, dir string) error {
 - [ ] **Step 3: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/contracts/ -run LoadAll -v
+cd prism && go test ./internal/contracts/ -run LoadAll -v
 ```
 
 Expected: FAIL — `LoadAll` undefined.
 
 - [ ] **Step 4: Implement `LoadAll`**
 
-Append to `~/prism/internal/contracts/loader.go`:
+Append to `prism/internal/contracts/loader.go`:
 
 ```go
 import (
@@ -1204,7 +1204,7 @@ func loadOneSource(id, srcDir string) (*SourceBundle, error) {
 - [ ] **Step 5: Run; verify it passes**
 
 ```bash
-cd ~/prism && gofmt -w internal/contracts/ && go test ./internal/contracts/ -v
+cd prism && gofmt -w internal/contracts/ && go test ./internal/contracts/ -v
 ```
 
 Expected: all tests PASS.
@@ -1212,7 +1212,7 @@ Expected: all tests PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/contracts/ && git commit -m "feat(contracts): LoadAll walks contracts/das/<source>/{_source,<entity>}.yml"
+cd prism && git add internal/contracts/ && git commit -m "feat(contracts): LoadAll walks contracts/das/<source>/{_source,<entity>}.yml"
 ```
 
 ---
@@ -1220,13 +1220,13 @@ cd ~/prism && git add internal/contracts/ && git commit -m "feat(contracts): Loa
 ### Task 7: Engine + Dialect interfaces and spec types
 
 **Files:**
-- Create: `~/prism/internal/engine/engine.go`
-- Create: `~/prism/internal/engine/spec.go`
+- Create: `prism/internal/engine/engine.go`
+- Create: `prism/internal/engine/spec.go`
 
 - [ ] **Step 1: Create the Engine interface**
 
 ```go
-// ~/prism/internal/engine/engine.go
+// prism/internal/engine/engine.go
 // Package engine defines prism's storage-engine abstraction. M1 implements
 // DuckDB only (see internal/engine/duckdb). Future engines (Postgres,
 // BigQuery, Databricks) plug in here behind the same interface — see ADR-004.
@@ -1257,7 +1257,7 @@ type Dialect interface {
 - [ ] **Step 2: Create the spec structs**
 
 ```go
-// ~/prism/internal/engine/spec.go
+// prism/internal/engine/spec.go
 package engine
 
 // Column describes one declared column in a DAS contract, after type parsing.
@@ -1293,7 +1293,7 @@ type CurrentViewSpec struct {
 - [ ] **Step 3: Verify compiles**
 
 ```bash
-cd ~/prism && go vet ./internal/engine/
+cd prism && go vet ./internal/engine/
 ```
 
 Expected: no errors.
@@ -1301,7 +1301,7 @@ Expected: no errors.
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/prism && git add internal/engine/ && git commit -m "feat(engine): Engine + Dialect interfaces and spec structs"
+cd prism && git add internal/engine/ && git commit -m "feat(engine): Engine + Dialect interfaces and spec structs"
 ```
 
 
@@ -1310,22 +1310,22 @@ cd ~/prism && git add internal/engine/ && git commit -m "feat(engine): Engine + 
 ### Task 8: DuckDB SQL templates (text/template)
 
 **Files:**
-- Create: `~/prism/internal/tmpl/duckdb/create_schema.sql.tmpl`
-- Create: `~/prism/internal/tmpl/duckdb/create_historized.sql.tmpl`
-- Create: `~/prism/internal/tmpl/duckdb/append_historized.sql.tmpl`
-- Create: `~/prism/internal/tmpl/duckdb/create_current_view.sql.tmpl`
-- Create: `~/prism/internal/tmpl/duckdb/render.go`
-- Create: `~/prism/internal/tmpl/duckdb/render_test.go`
-- Create: `~/prism/internal/tmpl/duckdb/testdata/golden/*.sql`
+- Create: `prism/internal/tmpl/duckdb/create_schema.sql.tmpl`
+- Create: `prism/internal/tmpl/duckdb/create_historized.sql.tmpl`
+- Create: `prism/internal/tmpl/duckdb/append_historized.sql.tmpl`
+- Create: `prism/internal/tmpl/duckdb/create_current_view.sql.tmpl`
+- Create: `prism/internal/tmpl/duckdb/render.go`
+- Create: `prism/internal/tmpl/duckdb/render_test.go`
+- Create: `prism/internal/tmpl/duckdb/testdata/golden/*.sql`
 
 - [ ] **Step 1: Create template files**
 
-`~/prism/internal/tmpl/duckdb/create_schema.sql.tmpl`:
+`prism/internal/tmpl/duckdb/create_schema.sql.tmpl`:
 ```
 CREATE SCHEMA IF NOT EXISTS {{ quote .Schema }};
 ```
 
-`~/prism/internal/tmpl/duckdb/create_historized.sql.tmpl`:
+`prism/internal/tmpl/duckdb/create_historized.sql.tmpl`:
 ```
 CREATE TABLE IF NOT EXISTS {{ quote .Schema }}.{{ quote .Name }} (
     _record_hash  VARCHAR  NOT NULL PRIMARY KEY,
@@ -1336,7 +1336,7 @@ CREATE TABLE IF NOT EXISTS {{ quote .Schema }}.{{ quote .Name }} (
 );
 ```
 
-`~/prism/internal/tmpl/duckdb/append_historized.sql.tmpl`:
+`prism/internal/tmpl/duckdb/append_historized.sql.tmpl`:
 ```
 INSERT INTO {{ quote .Schema }}.{{ quote .Name }} (
     _record_hash, _dlt_id, _dlt_load_id, _loaded_at{{ range .Columns }},
@@ -1363,7 +1363,7 @@ FROM (
 ON CONFLICT (_record_hash) DO NOTHING;
 ```
 
-`~/prism/internal/tmpl/duckdb/create_current_view.sql.tmpl`:
+`prism/internal/tmpl/duckdb/create_current_view.sql.tmpl`:
 ```
 CREATE OR REPLACE VIEW {{ quote .Schema }}.{{ quote .Name }} AS
 SELECT * EXCLUDE (_record_hash, _dlt_id, _dlt_load_id, _loaded_at, _row_num)
@@ -1381,7 +1381,7 @@ WHERE _row_num = 1;
 - [ ] **Step 2: Implement render.go**
 
 ```go
-// ~/prism/internal/tmpl/duckdb/render.go
+// prism/internal/tmpl/duckdb/render.go
 // Package duckdb renders prism's SQL templates against the DuckDB dialect.
 package duckdb
 
@@ -1440,7 +1440,7 @@ func RenderCreateCurrentView(spec engine.CurrentViewSpec) (string, error) {
 - [ ] **Step 3: Write golden-file tests**
 
 ```go
-// ~/prism/internal/tmpl/duckdb/render_test.go
+// prism/internal/tmpl/duckdb/render_test.go
 package duckdb
 
 import (
@@ -1521,7 +1521,7 @@ func TestCreateCurrentView(t *testing.T) {
 - [ ] **Step 4: Generate goldens (first time only)**
 
 ```bash
-cd ~/prism && go test ./internal/tmpl/duckdb/ -update
+cd prism && go test ./internal/tmpl/duckdb/ -update
 ```
 
 Inspect the four files in `internal/tmpl/duckdb/testdata/golden/` and confirm they look correct (typed columns, MD5 hash, ON CONFLICT, ROW_NUMBER ordering).
@@ -1529,7 +1529,7 @@ Inspect the four files in `internal/tmpl/duckdb/testdata/golden/` and confirm th
 - [ ] **Step 5: Run normally — should pass against goldens**
 
 ```bash
-cd ~/prism && go test ./internal/tmpl/duckdb/ -v
+cd prism && go test ./internal/tmpl/duckdb/ -v
 ```
 
 Expected: all PASS.
@@ -1537,7 +1537,7 @@ Expected: all PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/tmpl/ && git commit -m "feat(tmpl/duckdb): SQL templates + golden-file tests"
+cd prism && git add internal/tmpl/ && git commit -m "feat(tmpl/duckdb): SQL templates + golden-file tests"
 ```
 
 
@@ -1546,14 +1546,14 @@ cd ~/prism && git add internal/tmpl/ && git commit -m "feat(tmpl/duckdb): SQL te
 ### Task 9: DuckDB engine + dialect implementation; round-trip integration test
 
 **Files:**
-- Create: `~/prism/internal/engine/duckdb/duckdb.go`
-- Create: `~/prism/internal/engine/duckdb/duckdb_test.go`
-- Create: `~/prism/testdata/jsonl/customer_v1.jsonl.gz`
+- Create: `prism/internal/engine/duckdb/duckdb.go`
+- Create: `prism/internal/engine/duckdb/duckdb_test.go`
+- Create: `prism/testdata/jsonl/customer_v1.jsonl.gz`
 
 - [ ] **Step 1: Add go-duckdb dependency**
 
 ```bash
-cd ~/prism && go get github.com/marcboeker/go-duckdb/v2@latest
+cd prism && go get github.com/marcboeker/go-duckdb/v2@latest
 ```
 
 (Requires a C toolchain on the build machine. If `go get` fails with cgo errors, document it in `README.md` and proceed in an environment with a working C compiler.)
@@ -1563,7 +1563,7 @@ cd ~/prism && go get github.com/marcboeker/go-duckdb/v2@latest
 Create raw newline-JSON content with the dlt metadata fields that prism-runner adds. Use `gzip` to compress.
 
 ```bash
-cd ~/prism && mkdir -p testdata/jsonl && cat > /tmp/customer.jsonl <<'JSONL'
+cd prism && mkdir -p testdata/jsonl && cat > /tmp/customer.jsonl <<'JSONL'
 {"CustomerID":1,"CompanyName":"Acme","ModifiedDate":"2026-01-01T00:00:00Z","_dlt_id":"abc1","_dlt_load_id":"L1"}
 {"CustomerID":2,"CompanyName":"Beta","ModifiedDate":"2026-01-02T00:00:00Z","_dlt_id":"abc2","_dlt_load_id":"L1"}
 {"CustomerID":1,"CompanyName":"Acme Updated","ModifiedDate":"2026-01-03T00:00:00Z","_dlt_id":"abc3","_dlt_load_id":"L2"}
@@ -1574,7 +1574,7 @@ gzip -c /tmp/customer.jsonl > testdata/jsonl/customer_v1.jsonl.gz
 - [ ] **Step 3: Implement the engine**
 
 ```go
-// ~/prism/internal/engine/duckdb/duckdb.go
+// prism/internal/engine/duckdb/duckdb.go
 // Package duckdb is the DuckDB implementation of the engine.Engine interface.
 package duckdb
 
@@ -1665,7 +1665,7 @@ func (dialect) CreateOrReplaceCurrentView(spec engine.CurrentViewSpec) string {
 - [ ] **Step 4: Write the round-trip test**
 
 ```go
-// ~/prism/internal/engine/duckdb/duckdb_test.go
+// prism/internal/engine/duckdb/duckdb_test.go
 package duckdb
 
 import (
@@ -1739,7 +1739,7 @@ func TestRoundTrip(t *testing.T) {
 - [ ] **Step 5: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/engine/duckdb/ -v
+cd prism && go test ./internal/engine/duckdb/ -v
 ```
 
 Expected: PASS. If cgo errors occur, install gcc (Linux) / Xcode CLT (macOS) / TDM-GCC (Windows) and retry.
@@ -1747,7 +1747,7 @@ Expected: PASS. If cgo errors occur, install gcc (Linux) / Xcode CLT (macOS) / T
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/engine/duckdb/ testdata/jsonl/ go.mod go.sum && git commit -m "feat(engine/duckdb): DuckDB engine + dialect + round-trip test"
+cd prism && git add internal/engine/duckdb/ testdata/jsonl/ go.mod go.sum && git commit -m "feat(engine/duckdb): DuckDB engine + dialect + round-trip test"
 ```
 
 
@@ -1755,28 +1755,28 @@ cd ~/prism && git add internal/engine/duckdb/ testdata/jsonl/ go.mod go.sum && g
 
 ## Phase 2: Embedded Python dlt runner
 
-Tasks 10–13 build the Python module that runs inside per-source uv venvs. The runner is later embedded into the Go binary (Phase 3, Task 17). Lives at `~/prism/runtime/dlt_runner/`.
+Tasks 10–13 build the Python module that runs inside per-source uv venvs. The runner is later embedded into the Go binary (Phase 3, Task 17). Lives at `prism/runtime/dlt_runner/`.
 
 ### Task 10: Runtime scaffold — events.py, pyproject.toml.tmpl
 
 **Files:**
-- Create: `~/prism/runtime/dlt_runner/__init__.py`
-- Create: `~/prism/runtime/dlt_runner/events.py`
-- Create: `~/prism/runtime/dlt_runner/pyproject.toml.tmpl`
-- Create: `~/prism/runtime/dlt_runner/tests/__init__.py`
-- Create: `~/prism/runtime/dlt_runner/tests/test_events.py`
+- Create: `prism/runtime/dlt_runner/__init__.py`
+- Create: `prism/runtime/dlt_runner/events.py`
+- Create: `prism/runtime/dlt_runner/pyproject.toml.tmpl`
+- Create: `prism/runtime/dlt_runner/tests/__init__.py`
+- Create: `prism/runtime/dlt_runner/tests/test_events.py`
 
 - [ ] **Step 1: Empty package marker**
 
 ```python
-# ~/prism/runtime/dlt_runner/__init__.py
+# prism/runtime/dlt_runner/__init__.py
 __version__ = "0.1.0"
 ```
 
 - [ ] **Step 2: pyproject template**
 
 ```
-# ~/prism/runtime/dlt_runner/pyproject.toml.tmpl
+# prism/runtime/dlt_runner/pyproject.toml.tmpl
 [project]
 name = "prism-pipeline-{{source_id}}"
 version = "0.0.0"
@@ -1801,7 +1801,7 @@ prism-runner = ["prism-dlt-runner"]
 - [ ] **Step 3: Write events.py with failing test**
 
 ```python
-# ~/prism/runtime/dlt_runner/tests/test_events.py
+# prism/runtime/dlt_runner/tests/test_events.py
 import io
 import json
 
@@ -1836,7 +1836,7 @@ def test_emit_writes_jsonl(tmp_path):
 - [ ] **Step 4: Run; verify it fails**
 
 ```bash
-cd ~/prism/runtime/dlt_runner && uv run --with pytest --with pyyaml pytest tests/test_events.py -v
+cd prism/runtime/dlt_runner && uv run --with pytest --with pyyaml pytest tests/test_events.py -v
 ```
 
 Expected: FAIL — `events` module does not exist.
@@ -1844,7 +1844,7 @@ Expected: FAIL — `events` module does not exist.
 - [ ] **Step 5: Implement events.py**
 
 ```python
-# ~/prism/runtime/dlt_runner/events.py
+# prism/runtime/dlt_runner/events.py
 """Structured stdout event emitter for the prism dlt runner.
 
 Events are JSON objects, one per line, written to a configurable stream
@@ -1898,7 +1898,7 @@ class Emitter:
 - [ ] **Step 6: Run; verify it passes**
 
 ```bash
-cd ~/prism/runtime/dlt_runner && uv run --with pytest --with pyyaml pytest tests/test_events.py -v
+cd prism/runtime/dlt_runner && uv run --with pytest --with pyyaml pytest tests/test_events.py -v
 ```
 
 Expected: PASS.
@@ -1906,7 +1906,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): events.py + pyproject.toml.tmpl scaffold"
+cd prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): events.py + pyproject.toml.tmpl scaffold"
 ```
 
 
@@ -1915,20 +1915,20 @@ cd ~/prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): events
 ### Task 11: providers/odata.py — OData source factory with locked invariants
 
 **Files:**
-- Create: `~/prism/runtime/dlt_runner/providers/__init__.py`
-- Create: `~/prism/runtime/dlt_runner/providers/odata.py`
-- Create: `~/prism/runtime/dlt_runner/tests/test_providers_odata.py`
+- Create: `prism/runtime/dlt_runner/providers/__init__.py`
+- Create: `prism/runtime/dlt_runner/providers/odata.py`
+- Create: `prism/runtime/dlt_runner/tests/test_providers_odata.py`
 
 - [ ] **Step 1: Empty providers package marker**
 
 ```python
-# ~/prism/runtime/dlt_runner/providers/__init__.py
+# prism/runtime/dlt_runner/providers/__init__.py
 ```
 
 - [ ] **Step 2: Write the failing test**
 
 ```python
-# ~/prism/runtime/dlt_runner/tests/test_providers_odata.py
+# prism/runtime/dlt_runner/tests/test_providers_odata.py
 """Verify the OData provider builds a dlt source with prism's invariants."""
 
 from unittest.mock import MagicMock, patch
@@ -1961,7 +1961,7 @@ def test_invariants_are_returned():
 - [ ] **Step 3: Run; verify it fails**
 
 ```bash
-cd ~/prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/test_providers_odata.py -v
+cd prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/test_providers_odata.py -v
 ```
 
 Expected: FAIL — `providers.odata` does not exist.
@@ -1969,7 +1969,7 @@ Expected: FAIL — `providers.odata` does not exist.
 - [ ] **Step 4: Implement providers/odata.py**
 
 ```python
-# ~/prism/runtime/dlt_runner/providers/odata.py
+# prism/runtime/dlt_runner/providers/odata.py
 """OData source factory for the prism dlt runner.
 
 Wraps dlt's REST API helper with OData defaults (paging via @odata.nextLink,
@@ -2037,7 +2037,7 @@ def build_source(src_cfg: dict, entities: list[dict]):
 - [ ] **Step 5: Run; verify it passes**
 
 ```bash
-cd ~/prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/test_providers_odata.py -v
+cd prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/test_providers_odata.py -v
 ```
 
 Expected: PASS.
@@ -2045,7 +2045,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add runtime/dlt_runner/providers/ runtime/dlt_runner/tests/test_providers_odata.py && git commit -m "feat(runner/providers): odata source factory with locked invariants"
+cd prism && git add runtime/dlt_runner/providers/ runtime/dlt_runner/tests/test_providers_odata.py && git commit -m "feat(runner/providers): odata source factory with locked invariants"
 ```
 
 
@@ -2054,15 +2054,15 @@ cd ~/prism && git add runtime/dlt_runner/providers/ runtime/dlt_runner/tests/tes
 ### Task 12: runner.py — load contracts, dispatch, run dlt with invariants
 
 **Files:**
-- Create: `~/prism/runtime/dlt_runner/runner.py`
-- Create: `~/prism/runtime/dlt_runner/__main__.py`
-- Create: `~/prism/runtime/dlt_runner/tests/test_runner.py`
-- Create: `~/prism/runtime/dlt_runner/tests/fixtures/source.yml`
-- Create: `~/prism/runtime/dlt_runner/tests/fixtures/customer.yml`
+- Create: `prism/runtime/dlt_runner/runner.py`
+- Create: `prism/runtime/dlt_runner/__main__.py`
+- Create: `prism/runtime/dlt_runner/tests/test_runner.py`
+- Create: `prism/runtime/dlt_runner/tests/fixtures/source.yml`
+- Create: `prism/runtime/dlt_runner/tests/fixtures/customer.yml`
 
 - [ ] **Step 1: Test fixtures**
 
-`~/prism/runtime/dlt_runner/tests/fixtures/source.yml`:
+`prism/runtime/dlt_runner/tests/fixtures/source.yml`:
 ```yaml
 version: 1
 source:
@@ -2070,7 +2070,7 @@ source:
   base_url: https://api.example/odata/v1/
 ```
 
-`~/prism/runtime/dlt_runner/tests/fixtures/customer.yml`:
+`prism/runtime/dlt_runner/tests/fixtures/customer.yml`:
 ```yaml
 version: 1
 entity:
@@ -2087,7 +2087,7 @@ schema:
 - [ ] **Step 2: Write failing test**
 
 ```python
-# ~/prism/runtime/dlt_runner/tests/test_runner.py
+# prism/runtime/dlt_runner/tests/test_runner.py
 import io
 import json
 from pathlib import Path
@@ -2146,7 +2146,7 @@ def test_unknown_provider_errors():
 - [ ] **Step 3: Run; verify failures**
 
 ```bash
-cd ~/prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/test_runner.py -v
+cd prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/test_runner.py -v
 ```
 
 Expected: FAIL — `runner` module missing.
@@ -2154,7 +2154,7 @@ Expected: FAIL — `runner` module missing.
 - [ ] **Step 4: Implement runner.py**
 
 ```python
-# ~/prism/runtime/dlt_runner/runner.py
+# prism/runtime/dlt_runner/runner.py
 """Entry point logic for the prism dlt runner.
 
 Reads one `_source.yml` and N `<entity>.yml` files; constructs a dlt.Source
@@ -2237,7 +2237,7 @@ def run(
 - [ ] **Step 5: Implement __main__.py**
 
 ```python
-# ~/prism/runtime/dlt_runner/__main__.py
+# prism/runtime/dlt_runner/__main__.py
 """CLI entry: `python -m prism_dlt_runner --source <yaml> --entity <yaml> ... --lake <dir>`."""
 
 from __future__ import annotations
@@ -2277,7 +2277,7 @@ if __name__ == "__main__":
 - [ ] **Step 6: Run; verify passes**
 
 ```bash
-cd ~/prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/ -v
+cd prism/runtime/dlt_runner && uv run --with pytest --with pyyaml --with dlt[filesystem] pytest tests/ -v
 ```
 
 Expected: all PASS (events + odata + runner).
@@ -2285,7 +2285,7 @@ Expected: all PASS (events + odata + runner).
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): runner.py + __main__.py with invariants and event emission"
+cd prism && git add runtime/dlt_runner/ && git commit -m "feat(runner): runner.py + __main__.py with invariants and event emission"
 ```
 
 
@@ -2298,13 +2298,13 @@ Tasks 13–16 wire Go to the Python runner. After this phase, `prism` (programma
 ### Task 13: uv detection + version check
 
 **Files:**
-- Create: `~/prism/internal/pipeline/uv.go`
-- Create: `~/prism/internal/pipeline/uv_test.go`
+- Create: `prism/internal/pipeline/uv.go`
+- Create: `prism/internal/pipeline/uv_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 ```go
-// ~/prism/internal/pipeline/uv_test.go
+// prism/internal/pipeline/uv_test.go
 package pipeline
 
 import (
@@ -2340,7 +2340,7 @@ func TestVersionAtLeast(t *testing.T) {
 - [ ] **Step 2: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/pipeline/ -v
+cd prism && go test ./internal/pipeline/ -v
 ```
 
 Expected: FAIL — package does not exist.
@@ -2348,7 +2348,7 @@ Expected: FAIL — package does not exist.
 - [ ] **Step 3: Implement uv.go**
 
 ```go
-// ~/prism/internal/pipeline/uv.go
+// prism/internal/pipeline/uv.go
 // Package pipeline orchestrates per-source uv venvs and invokes the embedded
 // dlt runner. See ADR-001 and ADR-006.
 package pipeline
@@ -2420,7 +2420,7 @@ func splitVersion(v string) [3]int {
 - [ ] **Step 4: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/pipeline/ -v
+cd prism && go test ./internal/pipeline/ -v
 ```
 
 Expected: PASS.
@@ -2428,7 +2428,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/prism && git add internal/pipeline/ && git commit -m "feat(pipeline): uv detection + version floor check"
+cd prism && git add internal/pipeline/ && git commit -m "feat(pipeline): uv detection + version floor check"
 ```
 
 
@@ -2437,18 +2437,18 @@ cd ~/prism && git add internal/pipeline/ && git commit -m "feat(pipeline): uv de
 ### Task 14: Embed and extract the Python runner
 
 **Files:**
-- Create: `~/prism/internal/pipeline/extract.go`
-- Create: `~/prism/internal/pipeline/extract_test.go`
-- Modify: `~/prism/runtime/dlt_runner/__init__.py` (add a sentinel constant for version inspection)
+- Create: `prism/internal/pipeline/extract.go`
+- Create: `prism/internal/pipeline/extract_test.go`
+- Modify: `prism/runtime/dlt_runner/__init__.py` (add a sentinel constant for version inspection)
 
 - [ ] **Step 1: Sketch the embed root**
 
-The runner directory tree (`~/prism/runtime/dlt_runner/`) is embedded into the Go binary using `go:embed` directives in `extract.go`. We exclude `tests/` and `__pycache__/`.
+The runner directory tree (`prism/runtime/dlt_runner/`) is embedded into the Go binary using `go:embed` directives in `extract.go`. We exclude `tests/` and `__pycache__/`.
 
 - [ ] **Step 2: Write failing test**
 
 ```go
-// ~/prism/internal/pipeline/extract_test.go
+// prism/internal/pipeline/extract_test.go
 package pipeline
 
 import (
@@ -2494,7 +2494,7 @@ func TestExtractRunnerIdempotent(t *testing.T) {
 - [ ] **Step 3: Run; verify failure**
 
 ```bash
-cd ~/prism && go test ./internal/pipeline/ -run Extract -v
+cd prism && go test ./internal/pipeline/ -run Extract -v
 ```
 
 Expected: FAIL.
@@ -2502,7 +2502,7 @@ Expected: FAIL.
 - [ ] **Step 4: Implement extract.go**
 
 ```go
-// ~/prism/internal/pipeline/extract.go
+// prism/internal/pipeline/extract.go
 package pipeline
 
 import (
@@ -2568,10 +2568,10 @@ func ExtractRunner(cacheDir string) (string, error) {
 
 - [ ] **Step 5: Symlink (or copy) the runner tree under the embed-friendly name**
 
-`go:embed` paths are relative to the Go file. We use a symlink (one-time setup) so the runner lives at `~/prism/runtime/dlt_runner/` (matching the project structure) but is also embed-addressable from `internal/pipeline/`:
+`go:embed` paths are relative to the Go file. We use a symlink (one-time setup) so the runner lives at `prism/runtime/dlt_runner/` (matching the project structure) but is also embed-addressable from `internal/pipeline/`:
 
 ```bash
-cd ~/prism/internal/pipeline && ln -s ../../runtime/dlt_runner runtime_dlt_runner
+cd prism/internal/pipeline && ln -s ../../runtime/dlt_runner runtime_dlt_runner
 ```
 
 If symlinks aren't desired (Windows CI, etc.), an alternative is to use `//go:embed all:../../runtime/dlt_runner` — but Go disallows `..` in embed paths. The clean fix is to keep the runner under `internal/pipeline/runtime_dlt_runner/` directly. **Choose one** in the executor's environment and document it. The test below assumes the symlink is in place.
@@ -2579,7 +2579,7 @@ If symlinks aren't desired (Windows CI, etc.), an alternative is to use `//go:em
 - [ ] **Step 6: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/pipeline/ -run Extract -v
+cd prism && go test ./internal/pipeline/ -run Extract -v
 ```
 
 Expected: PASS. If embed errors say "no matching files" check the symlink target.
@@ -2587,7 +2587,7 @@ Expected: PASS. If embed errors say "no matching files" check the symlink target
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/prism && git add internal/pipeline/extract.go internal/pipeline/extract_test.go internal/pipeline/runtime_dlt_runner && git commit -m "feat(pipeline): embed + extract Python runner to cache dir"
+cd prism && git add internal/pipeline/extract.go internal/pipeline/extract_test.go internal/pipeline/runtime_dlt_runner && git commit -m "feat(pipeline): embed + extract Python runner to cache dir"
 ```
 
 
@@ -2596,13 +2596,13 @@ cd ~/prism && git add internal/pipeline/extract.go internal/pipeline/extract_tes
 ### Task 15: Synthesize per-source `pyproject.toml`; `uv sync` wrapper
 
 **Files:**
-- Create: `~/prism/internal/pipeline/sync.go`
-- Create: `~/prism/internal/pipeline/sync_test.go`
+- Create: `prism/internal/pipeline/sync.go`
+- Create: `prism/internal/pipeline/sync_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
 ```go
-// ~/prism/internal/pipeline/sync_test.go
+// prism/internal/pipeline/sync_test.go
 package pipeline
 
 import (
@@ -2645,7 +2645,7 @@ func TestEnsurePyprojectWritesAndIdempotent(t *testing.T) {
 - [ ] **Step 2: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/pipeline/ -run Pyproject -v
+cd prism && go test ./internal/pipeline/ -run Pyproject -v
 ```
 
 Expected: FAIL.
@@ -2653,7 +2653,7 @@ Expected: FAIL.
 - [ ] **Step 3: Implement sync.go**
 
 ```go
-// ~/prism/internal/pipeline/sync.go
+// prism/internal/pipeline/sync.go
 package pipeline
 
 import (
@@ -2738,7 +2738,7 @@ func UVSync(ctx context.Context, uvPath, projectDir string) error {
 - [ ] **Step 4: Run; verify it passes**
 
 ```bash
-cd ~/prism && go test ./internal/pipeline/ -v
+cd prism && go test ./internal/pipeline/ -v
 ```
 
 Expected: PASS (UVSync isn't tested here — that requires a real uv venv; covered indirectly by Phase 5 E2E).
@@ -2746,7 +2746,7 @@ Expected: PASS (UVSync isn't tested here — that requires a real uv venv; cover
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/prism && git add internal/pipeline/sync.go internal/pipeline/sync_test.go && git commit -m "feat(pipeline): synthesize pyproject.toml + uv sync wrapper"
+cd prism && git add internal/pipeline/sync.go internal/pipeline/sync_test.go && git commit -m "feat(pipeline): synthesize pyproject.toml + uv sync wrapper"
 ```
 
 
@@ -2755,15 +2755,15 @@ cd ~/prism && git add internal/pipeline/sync.go internal/pipeline/sync_test.go &
 ### Task 16: Run the runner; parse JSONL events
 
 **Files:**
-- Create: `~/prism/internal/events/events.go`
-- Create: `~/prism/internal/events/events_test.go`
-- Create: `~/prism/internal/pipeline/run.go`
-- Create: `~/prism/internal/pipeline/run_test.go`
+- Create: `prism/internal/events/events.go`
+- Create: `prism/internal/events/events_test.go`
+- Create: `prism/internal/pipeline/run.go`
+- Create: `prism/internal/pipeline/run_test.go`
 
 - [ ] **Step 1: Define the event types**
 
 ```go
-// ~/prism/internal/events/events.go
+// prism/internal/events/events.go
 // Package events models the JSONL event stream emitted by the prism dlt runner.
 // See ADR-006 and the design spec section on IPC.
 package events
@@ -2821,7 +2821,7 @@ func Parse(r io.Reader, fn func(Event) error) error {
 - [ ] **Step 2: Test event parsing**
 
 ```go
-// ~/prism/internal/events/events_test.go
+// prism/internal/events/events_test.go
 package events
 
 import (
@@ -2856,7 +2856,7 @@ not-json garbage line
 - [ ] **Step 3: Run; verify**
 
 ```bash
-cd ~/prism && go test ./internal/events/ -v
+cd prism && go test ./internal/events/ -v
 ```
 
 Expected: PASS.
@@ -2864,7 +2864,7 @@ Expected: PASS.
 - [ ] **Step 4: Implement pipeline/run.go**
 
 ```go
-// ~/prism/internal/pipeline/run.go
+// prism/internal/pipeline/run.go
 package pipeline
 
 import (
@@ -2934,7 +2934,7 @@ func RunRunner(
 - [ ] **Step 5: Wiring test (no real subprocess)**
 
 ```go
-// ~/prism/internal/pipeline/run_test.go
+// prism/internal/pipeline/run_test.go
 package pipeline
 
 import (
@@ -2997,7 +2997,7 @@ exit 0
 - [ ] **Step 6: Run; verify both pass**
 
 ```bash
-cd ~/prism && go test ./internal/events/ ./internal/pipeline/ -v
+cd prism && go test ./internal/events/ ./internal/pipeline/ -v
 ```
 
 Expected: PASS.
@@ -3005,7 +3005,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/prism && git add internal/events/ internal/pipeline/run.go internal/pipeline/run_test.go && git commit -m "feat(pipeline,events): runner subprocess + JSONL event parser"
+cd prism && git add internal/events/ internal/pipeline/run.go internal/pipeline/run_test.go && git commit -m "feat(pipeline,events): runner subprocess + JSONL event parser"
 ```
 
 
@@ -3018,21 +3018,21 @@ Tasks 17–24 wire the components built in Phases 1–3 to user-facing cobra com
 ### Task 17: cobra scaffold + `prism --version`
 
 **Files:**
-- Create: `~/prism/cmd/prism/main.go`
-- Create: `~/prism/internal/cli/root.go`
-- Create: `~/prism/internal/version/version.go`
-- Create: `~/prism/internal/cli/root_test.go`
+- Create: `prism/cmd/prism/main.go`
+- Create: `prism/internal/cli/root.go`
+- Create: `prism/internal/version/version.go`
+- Create: `prism/internal/cli/root_test.go`
 
 - [ ] **Step 1: Add cobra**
 
 ```bash
-cd ~/prism && go get github.com/spf13/cobra@v1.8.0
+cd prism && go get github.com/spf13/cobra@v1.8.0
 ```
 
 - [ ] **Step 2: version package**
 
 ```go
-// ~/prism/internal/version/version.go
+// prism/internal/version/version.go
 package version
 
 // Version is set by the linker via -ldflags "-X .../version.Version=...".
@@ -3043,7 +3043,7 @@ var Version = "dev"
 - [ ] **Step 3: root.go**
 
 ```go
-// ~/prism/internal/cli/root.go
+// prism/internal/cli/root.go
 // Package cli wires the cobra command tree.
 package cli
 
@@ -3070,7 +3070,7 @@ func NewRoot() *cobra.Command {
 - [ ] **Step 4: main.go**
 
 ```go
-// ~/prism/cmd/prism/main.go
+// prism/cmd/prism/main.go
 package main
 
 import (
@@ -3091,7 +3091,7 @@ func main() {
 - [ ] **Step 5: Test that --version works**
 
 ```go
-// ~/prism/internal/cli/root_test.go
+// prism/internal/cli/root_test.go
 package cli
 
 import (
@@ -3117,7 +3117,7 @@ func TestRootVersion(t *testing.T) {
 - [ ] **Step 6: Run; build + test**
 
 ```bash
-cd ~/prism && go build ./... && go test ./internal/cli/ ./internal/version/ -v
+cd prism && go build ./... && go test ./internal/cli/ ./internal/version/ -v
 ```
 
 Expected: PASS, builds clean.
@@ -3125,7 +3125,7 @@ Expected: PASS, builds clean.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/prism && git add cmd/ internal/cli/root.go internal/cli/root_test.go internal/version/ go.mod go.sum && git commit -m "feat(cli): cobra scaffold + --version"
+cd prism && git add cmd/ internal/cli/root.go internal/cli/root_test.go internal/version/ go.mod go.sum && git commit -m "feat(cli): cobra scaffold + --version"
 ```
 
 
@@ -3134,13 +3134,13 @@ cd ~/prism && git add cmd/ internal/cli/root.go internal/cli/root_test.go intern
 ### Task 18: `prism init`
 
 **Files:**
-- Create: `~/prism/internal/cli/init.go`
-- Create: `~/prism/internal/cli/init_test.go`
+- Create: `prism/internal/cli/init.go`
+- Create: `prism/internal/cli/init_test.go`
 
 - [ ] **Step 1: Test the scaffold**
 
 ```go
-// ~/prism/internal/cli/init_test.go
+// prism/internal/cli/init_test.go
 package cli
 
 import (
@@ -3191,7 +3191,7 @@ func TestInitRefusesNonEmpty(t *testing.T) {
 - [ ] **Step 2: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/cli/ -run Init -v
+cd prism && go test ./internal/cli/ -run Init -v
 ```
 
 Expected: FAIL — `init` subcommand not registered.
@@ -3199,7 +3199,7 @@ Expected: FAIL — `init` subcommand not registered.
 - [ ] **Step 3: Implement init.go**
 
 ```go
-// ~/prism/internal/cli/init.go
+// prism/internal/cli/init.go
 package cli
 
 import (
@@ -3277,7 +3277,7 @@ func refuseIfHasFile(dir, name string) error {
 
 - [ ] **Step 4: Wire `addInit` into the root command**
 
-Edit `~/prism/internal/cli/root.go`:
+Edit `prism/internal/cli/root.go`:
 
 ```go
 func NewRoot() *cobra.Command {
@@ -3296,7 +3296,7 @@ func NewRoot() *cobra.Command {
 - [ ] **Step 5: Run; verify passes**
 
 ```bash
-cd ~/prism && go test ./internal/cli/ -v
+cd prism && go test ./internal/cli/ -v
 ```
 
 Expected: PASS.
@@ -3304,7 +3304,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/cli/ && git commit -m "feat(cli): prism init"
+cd prism && git add internal/cli/ && git commit -m "feat(cli): prism init"
 ```
 
 
@@ -3313,13 +3313,13 @@ cd ~/prism && git add internal/cli/ && git commit -m "feat(cli): prism init"
 ### Task 19: `prism validate`
 
 **Files:**
-- Create: `~/prism/internal/cli/validate.go`
-- Create: `~/prism/internal/cli/validate_test.go`
+- Create: `prism/internal/cli/validate.go`
+- Create: `prism/internal/cli/validate_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 ```go
-// ~/prism/internal/cli/validate_test.go
+// prism/internal/cli/validate_test.go
 package cli
 
 import (
@@ -3353,7 +3353,7 @@ func TestValidateInvalid(t *testing.T) {
 - [ ] **Step 2: Run; verify failures**
 
 ```bash
-cd ~/prism && go test ./internal/cli/ -run Validate -v
+cd prism && go test ./internal/cli/ -run Validate -v
 ```
 
 Expected: FAIL — `validate` not registered.
@@ -3361,7 +3361,7 @@ Expected: FAIL — `validate` not registered.
 - [ ] **Step 3: Implement validate.go**
 
 ```go
-// ~/prism/internal/cli/validate.go
+// prism/internal/cli/validate.go
 package cli
 
 import (
@@ -3402,7 +3402,7 @@ In `root.go` `NewRoot()`, append `addValidate(root)`.
 - [ ] **Step 5: Run; verify passes**
 
 ```bash
-cd ~/prism && go test ./internal/cli/ -v
+cd prism && go test ./internal/cli/ -v
 ```
 
 Expected: PASS for `valid`; PASS (i.e., asserts the error) for `invalid`.
@@ -3410,7 +3410,7 @@ Expected: PASS for `valid`; PASS (i.e., asserts the error) for `invalid`.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/cli/validate.go internal/cli/validate_test.go internal/cli/root.go && git commit -m "feat(cli): prism validate"
+cd prism && git add internal/cli/validate.go internal/cli/validate_test.go internal/cli/root.go && git commit -m "feat(cli): prism validate"
 ```
 
 
@@ -3419,12 +3419,12 @@ cd ~/prism && git add internal/cli/validate.go internal/cli/validate_test.go int
 ### Task 20: `prism doctor`
 
 **Files:**
-- Create: `~/prism/internal/cli/doctor.go`
+- Create: `prism/internal/cli/doctor.go`
 
 - [ ] **Step 1: Implement doctor**
 
 ```go
-// ~/prism/internal/cli/doctor.go
+// prism/internal/cli/doctor.go
 package cli
 
 import (
@@ -3490,7 +3490,7 @@ func writableCheck(path string) error {
 - [ ] **Step 3: Smoke test manually**
 
 ```bash
-cd ~/prism && go build -o prism ./cmd/prism && (cd /tmp && rm -rf prism-doctor-tmp && mkdir prism-doctor-tmp && cd prism-doctor-tmp && ~/prism/prism init --dir . && ~/prism/prism doctor)
+cd prism && go build -o prism ./cmd/prism && (cd /tmp && rm -rf prism-doctor-tmp && mkdir prism-doctor-tmp && cd prism-doctor-tmp && prism/prism init --dir . && prism/prism doctor)
 ```
 
 Expected output:
@@ -3504,7 +3504,7 @@ Checking environment…
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/prism && git add internal/cli/doctor.go internal/cli/root.go && git commit -m "feat(cli): prism doctor"
+cd prism && git add internal/cli/doctor.go internal/cli/root.go && git commit -m "feat(cli): prism doctor"
 ```
 
 
@@ -3513,14 +3513,14 @@ cd ~/prism && git add internal/cli/doctor.go internal/cli/root.go && git commit 
 ### Task 21: `prism das discover` — OData $metadata → entity contract scaffolds
 
 **Files:**
-- Create: `~/prism/internal/discover/odata.go`
-- Create: `~/prism/internal/discover/odata_test.go`
-- Create: `~/prism/internal/cli/das_discover.go`
-- Create: `~/prism/testdata/odata/$metadata.xml` (small fixture)
+- Create: `prism/internal/discover/odata.go`
+- Create: `prism/internal/discover/odata_test.go`
+- Create: `prism/internal/cli/das_discover.go`
+- Create: `prism/testdata/odata/$metadata.xml` (small fixture)
 
 - [ ] **Step 1: Tiny `$metadata` fixture (XML)**
 
-`~/prism/testdata/odata/$metadata.xml`:
+`prism/testdata/odata/$metadata.xml`:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
@@ -3543,7 +3543,7 @@ cd ~/prism && git add internal/cli/doctor.go internal/cli/root.go && git commit 
 - [ ] **Step 2: Failing test for the discover/scaffolder**
 
 ```go
-// ~/prism/internal/discover/odata_test.go
+// prism/internal/discover/odata_test.go
 package discover
 
 import (
@@ -3591,7 +3591,7 @@ func TestRenderScaffold(t *testing.T) {
 - [ ] **Step 3: Implement discover/odata.go**
 
 ```go
-// ~/prism/internal/discover/odata.go
+// prism/internal/discover/odata.go
 // Package discover fetches upstream metadata and scaffolds prism entity
 // contracts. M1 supports OData $metadata; future providers add their own
 // implementations. See spec section "CLI surface" / `prism das discover`.
@@ -3706,13 +3706,13 @@ func RenderEntityScaffold(ent EntityType) (string, error) {
 - [ ] **Step 4: Run; expect PASS**
 
 ```bash
-cd ~/prism && go test ./internal/discover/ -v
+cd prism && go test ./internal/discover/ -v
 ```
 
 - [ ] **Step 5: Implement the CLI command**
 
 ```go
-// ~/prism/internal/cli/das_discover.go
+// prism/internal/cli/das_discover.go
 package cli
 
 import (
@@ -3826,7 +3826,7 @@ func fetchMetadata(ctx context.Context, baseURL string) ([]byte, error) {
 - [ ] **Step 7: Build + commit (skip live network test in CI)**
 
 ```bash
-cd ~/prism && go build ./... && go test ./internal/discover/ ./internal/cli/ -v
+cd prism && go build ./... && go test ./internal/discover/ ./internal/cli/ -v
 git add internal/discover/ internal/cli/das_discover.go internal/cli/root.go testdata/odata/ && git commit -m "feat(cli): prism das discover (OData \$metadata → entity scaffolds)"
 ```
 
@@ -3836,13 +3836,13 @@ git add internal/discover/ internal/cli/das_discover.go internal/cli/root.go tes
 ### Task 22: `prism das build` — apply DDL/append/views per entity
 
 **Files:**
-- Create: `~/prism/internal/cli/das_build.go`
-- Create: `~/prism/internal/cli/das_build_test.go`
+- Create: `prism/internal/cli/das_build.go`
+- Create: `prism/internal/cli/das_build_test.go`
 
 - [ ] **Step 1: Failing integration test (uses :memory: DuckDB + JSONL fixture)**
 
 ```go
-// ~/prism/internal/cli/das_build_test.go
+// prism/internal/cli/das_build_test.go
 package cli
 
 import (
@@ -3906,7 +3906,7 @@ func TestDasBuildAgainstFixtureLake(t *testing.T) {
 - [ ] **Step 2: Run; verify it fails**
 
 ```bash
-cd ~/prism && go test ./internal/cli/ -run DasBuild -v
+cd prism && go test ./internal/cli/ -run DasBuild -v
 ```
 
 Expected: FAIL — `RunDasBuild` undefined.
@@ -3914,7 +3914,7 @@ Expected: FAIL — `RunDasBuild` undefined.
 - [ ] **Step 3: Implement das_build.go**
 
 ```go
-// ~/prism/internal/cli/das_build.go
+// prism/internal/cli/das_build.go
 package cli
 
 import (
@@ -4067,7 +4067,7 @@ func toEngineColumns(cs []contracts.Column) ([]engine.Column, error) {
 - [ ] **Step 5: Run; verify passes**
 
 ```bash
-cd ~/prism && go test ./internal/cli/ -run DasBuild -v
+cd prism && go test ./internal/cli/ -run DasBuild -v
 ```
 
 Expected: PASS.
@@ -4075,7 +4075,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/cli/das_build.go internal/cli/das_build_test.go internal/cli/root.go && git commit -m "feat(cli): prism das build (DDL + append + current view per entity)"
+cd prism && git add internal/cli/das_build.go internal/cli/das_build_test.go internal/cli/root.go && git commit -m "feat(cli): prism das build (DDL + append + current view per entity)"
 ```
 
 
@@ -4084,12 +4084,12 @@ cd ~/prism && git add internal/cli/das_build.go internal/cli/das_build_test.go i
 ### Task 23: `prism das land` — invoke runner via uv venv
 
 **Files:**
-- Create: `~/prism/internal/cli/das_land.go`
+- Create: `prism/internal/cli/das_land.go`
 
 - [ ] **Step 1: Implement das_land.go**
 
 ```go
-// ~/prism/internal/cli/das_land.go
+// prism/internal/cli/das_land.go
 package cli
 
 import (
@@ -4219,7 +4219,7 @@ func defaultCacheDir() string {
 - [ ] **Step 3: Build verification**
 
 ```bash
-cd ~/prism && go build ./...
+cd prism && go build ./...
 ```
 
 Expected: clean build. (No automated test for `land` — covered by E2E in Task 27.)
@@ -4227,7 +4227,7 @@ Expected: clean build. (No automated test for `land` — covered by E2E in Task 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/prism && git add internal/cli/das_land.go internal/cli/root.go && git commit -m "feat(cli): prism das land (uv venv + dlt runner orchestration)"
+cd prism && git add internal/cli/das_land.go internal/cli/root.go && git commit -m "feat(cli): prism das land (uv venv + dlt runner orchestration)"
 ```
 
 
@@ -4236,13 +4236,13 @@ cd ~/prism && git add internal/cli/das_land.go internal/cli/root.go && git commi
 ### Task 24: `prism das run` and `prism run`
 
 **Files:**
-- Create: `~/prism/internal/cli/das_run.go`
-- Create: `~/prism/internal/cli/run.go`
+- Create: `prism/internal/cli/das_run.go`
+- Create: `prism/internal/cli/run.go`
 
 - [ ] **Step 1: das_run.go (composition of land + build)**
 
 ```go
-// ~/prism/internal/cli/das_run.go
+// prism/internal/cli/das_run.go
 package cli
 
 import (
@@ -4312,7 +4312,7 @@ func runDasRun(ctx context.Context, out io.Writer, contractsRoot, lakeRoot, pipe
 - [ ] **Step 2: run.go (top-level alias)**
 
 ```go
-// ~/prism/internal/cli/run.go
+// prism/internal/cli/run.go
 package cli
 
 import "github.com/spf13/cobra"
@@ -4340,7 +4340,7 @@ func addRun(root *cobra.Command) {
 - [ ] **Step 4: Build verification**
 
 ```bash
-cd ~/prism && go build ./... && ./prism --help
+cd prism && go build ./... && ./prism --help
 ```
 
 Expected: help output lists `init`, `validate`, `doctor`, `das`, `run`. `prism das --help` lists `discover`, `land`, `build`, `run`.
@@ -4348,7 +4348,7 @@ Expected: help output lists `init`, `validate`, `doctor`, `das`, `run`. `prism d
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/prism && git add internal/cli/das_run.go internal/cli/run.go internal/cli/root.go && git commit -m "feat(cli): prism das run + prism run"
+cd prism && git add internal/cli/das_run.go internal/cli/run.go internal/cli/root.go && git commit -m "feat(cli): prism das run + prism run"
 ```
 
 
@@ -4361,14 +4361,14 @@ Tasks 25–28 close the loop: drift detection runs after build, an E2E test exer
 ### Task 25: Drift contract test — NULL-in-REQUIRED detector
 
 **Files:**
-- Create: `~/prism/internal/drift/drift.go`
-- Create: `~/prism/internal/drift/drift_test.go`
-- Modify: `~/prism/internal/cli/das_build.go` (run drift checks after build)
+- Create: `prism/internal/drift/drift.go`
+- Create: `prism/internal/drift/drift_test.go`
+- Modify: `prism/internal/cli/das_build.go` (run drift checks after build)
 
 - [ ] **Step 1: Failing test**
 
 ```go
-// ~/prism/internal/drift/drift_test.go
+// prism/internal/drift/drift_test.go
 package drift
 
 import (
@@ -4450,7 +4450,7 @@ func setupCustomerHistorized(t *testing.T, injectDrift bool) (*duckdb.Engine, st
 - [ ] **Step 2: Run; verify failure**
 
 ```bash
-cd ~/prism && go test ./internal/drift/ -v
+cd prism && go test ./internal/drift/ -v
 ```
 
 Expected: FAIL — package not implemented.
@@ -4458,7 +4458,7 @@ Expected: FAIL — package not implemented.
 - [ ] **Step 3: Implement drift.go**
 
 ```go
-// ~/prism/internal/drift/drift.go
+// prism/internal/drift/drift.go
 // Package drift runs lightweight contract assertions against materialized
 // historized tables. M1 implements the NULL-in-REQUIRED check (see ADR-003).
 package drift
@@ -4514,14 +4514,14 @@ func DetectNullsInRequired(
 - [ ] **Step 4: Run; verify passes**
 
 ```bash
-cd ~/prism && go test ./internal/drift/ -v
+cd prism && go test ./internal/drift/ -v
 ```
 
 Expected: PASS.
 
 - [ ] **Step 5: Wire drift check into `RunDasBuild`**
 
-Edit `~/prism/internal/cli/das_build.go` — after the `CreateOrReplaceCurrentView` exec in `buildOneEntity`, add:
+Edit `prism/internal/cli/das_build.go` — after the `CreateOrReplaceCurrentView` exec in `buildOneEntity`, add:
 
 ```go
 import "github.com/prism-data/prism/internal/drift"
@@ -4541,7 +4541,7 @@ for _, r := range results {
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/prism && git add internal/drift/ internal/cli/das_build.go && git commit -m "feat(drift): NULL-in-REQUIRED detector + post-build invocation"
+cd prism && git add internal/drift/ internal/cli/das_build.go && git commit -m "feat(drift): NULL-in-REQUIRED detector + post-build invocation"
 ```
 
 
@@ -4550,14 +4550,14 @@ cd ~/prism && git add internal/drift/ internal/cli/das_build.go && git commit -m
 ### Task 26: AdventureWorks E2E test (gated)
 
 **Files:**
-- Create: `~/prism/cmd/prism/e2e_test.go`
+- Create: `prism/cmd/prism/e2e_test.go`
 
 - [ ] **Step 1: Write the gated E2E test**
 
 ```go
 //go:build e2e
 
-// ~/prism/cmd/prism/e2e_test.go
+// prism/cmd/prism/e2e_test.go
 package main
 
 import (
@@ -4679,7 +4679,7 @@ func projectRoot(t *testing.T) string {
 - [ ] **Step 2: Run (only when explicitly requested)**
 
 ```bash
-cd ~/prism && go test -tags=e2e -run E2E -v ./cmd/prism/
+cd prism && go test -tags=e2e -run E2E -v ./cmd/prism/
 ```
 
 Expected: PASS, takes 1–5 minutes against the live endpoint. If the AdventureWorks OData service is unreachable, the test fails with a clear network error — that's expected.
@@ -4687,7 +4687,7 @@ Expected: PASS, takes 1–5 minutes against the live endpoint. If the AdventureW
 - [ ] **Step 3: Commit**
 
 ```bash
-cd ~/prism && git add cmd/prism/e2e_test.go && git commit -m "test(e2e): AdventureWorks end-to-end pipeline (gated by -tags=e2e)"
+cd prism && git add cmd/prism/e2e_test.go && git commit -m "test(e2e): AdventureWorks end-to-end pipeline (gated by -tags=e2e)"
 ```
 
 
@@ -4696,10 +4696,10 @@ cd ~/prism && git add cmd/prism/e2e_test.go && git commit -m "test(e2e): Adventu
 ### Task 27: README quickstart + CI workflow
 
 **Files:**
-- Modify: `~/prism/README.md` (replace stub)
-- Create: `~/prism/.github/workflows/ci.yml`
+- Modify: `prism/README.md` (replace stub)
+- Create: `prism/.github/workflows/ci.yml`
 
-- [ ] **Step 1: Replace `~/prism/README.md`**
+- [ ] **Step 1: Replace `prism/README.md`**
 
 ```markdown
 # prism
@@ -4773,7 +4773,7 @@ MIT.
 - [ ] **Step 2: Add CI workflow**
 
 ```yaml
-# ~/prism/.github/workflows/ci.yml
+# prism/.github/workflows/ci.yml
 name: ci
 
 on:
@@ -4807,6 +4807,6 @@ jobs:
 - [ ] **Step 3: Build verification & commit**
 
 ```bash
-cd ~/prism && go build ./... && git add README.md .github/ && git commit -m "docs(README): quickstart + CI workflow"
+cd prism && go build ./... && git add README.md .github/ && git commit -m "docs(README): quickstart + CI workflow"
 ```
 
