@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS {{ quote .Schema }}.{{ quote .Name }} (
+    _record_hash  VARCHAR  NOT NULL PRIMARY KEY,
+    _dlt_id       VARCHAR  NOT NULL,
+    _dlt_load_id  VARCHAR  NOT NULL,
+    _loaded_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP{{ range .Columns }},
+    {{ quote .TargetName }}  {{ .SQLType }}{{ if .NotNull }}  NOT NULL{{ end }}{{ end }}
+);
