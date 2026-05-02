@@ -20,5 +20,6 @@ func NewRoot() *cobra.Command {
 	addInit(root)
 	addValidate(root)
 	addDoctor(root)
+	addDasDiscover(root)
 	return root
 }

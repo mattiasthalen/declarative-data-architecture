@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AdventureWorks">
+      <EntityType Name="Customer">
+        <Key><PropertyRef Name="CustomerID"/></Key>
+        <Property Name="CustomerID"  Type="Edm.Int64"  Nullable="false"/>
+        <Property Name="CompanyName" Type="Edm.String" Nullable="true"/>
+        <Property Name="ModifiedDate" Type="Edm.DateTimeOffset" Nullable="false"/>
+      </EntityType>
+      <EntityContainer Name="Container">
+        <EntitySet Name="Customer" EntityType="AdventureWorks.Customer"/>
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
