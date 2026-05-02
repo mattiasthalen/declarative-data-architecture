@@ -13,7 +13,7 @@ FROM (
         json,
         struct_pack(
 {{- range $i, $c := .Columns }}{{ if $i }},{{ end }}
-            {{ quote $c.TargetName }} := CAST(json_extract(json, '$.{{ $c.SourcePath }}') AS {{ $c.SQLType }}){{ end }}
+            {{ quote $c.TargetName }} := CAST(json_extract_string(json, '$.{{ $c.SourcePath }}') AS {{ $c.SQLType }}){{ end }}
         ) AS typed_row
     FROM read_ndjson_objects(
         '{{ .LakeGlob }}',

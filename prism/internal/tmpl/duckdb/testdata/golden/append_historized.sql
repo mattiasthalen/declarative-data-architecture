@@ -16,9 +16,9 @@ FROM (
     SELECT
         json,
         struct_pack(
-            "customer_id" := CAST(json_extract(json, '$.CustomerID') AS BIGINT),
-            "company_name" := CAST(json_extract(json, '$.CompanyName') AS VARCHAR),
-            "modified_date" := CAST(json_extract(json, '$.ModifiedDate') AS TIMESTAMP)
+            "customer_id" := CAST(json_extract_string(json, '$.CustomerID') AS BIGINT),
+            "company_name" := CAST(json_extract_string(json, '$.CompanyName') AS VARCHAR),
+            "modified_date" := CAST(json_extract_string(json, '$.ModifiedDate') AS TIMESTAMP)
         ) AS typed_row
     FROM read_ndjson_objects(
         '/lake/das/adventure_works/Customer/**/*.jsonl.gz',
