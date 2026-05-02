@@ -1,0 +1,16 @@
+[project]
+name = "prism-dlt-runner"
+version = "0.1.0"
+description = "prism dlt runner"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"prism_dlt_runner" = "."}
+packages = ["prism_dlt_runner", "prism_dlt_runner.providers"]

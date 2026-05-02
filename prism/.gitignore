@@ -1,0 +1,28 @@
+# Build artifacts
+/dist/
+/prism
+*.exe
+*.test
+*.out
+coverage.*
+
+# Python venvs (extracted runner cache during dev)
+/.cache/
+__pycache__/
+*.py[cod]
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Python packaging artifacts (created by uv when running runner tests)
+*.egg-info/
+.venv/
+
+# Per-runner uv.lock from dev test runs (the canonical _pipelines/<source>/uv.lock
+# is in a different location and we'll decide its commit policy then)
+runtime/dlt_runner/uv.lock
+runtime/dlt_runner/pyproject.toml

@@ -1,0 +1,23 @@
+INSERT INTO {{ quote .Schema }}.{{ quote .Name }} (
+    _record_hash, _dlt_id, _dlt_load_id, _loaded_at{{ range .Columns }},
+    {{ quote .TargetName }}{{ end }}
+)
+SELECT
+    md5(typed_row::VARCHAR)                 AS _record_hash,
+    json_extract_string(json, '$._dlt_id')      AS _dlt_id,
+    json_extract_string(json, '$._dlt_load_id') AS _dlt_load_id,
+    CURRENT_TIMESTAMP                       AS _loaded_at{{ range .Columns }},
+    typed_row.{{ quote .TargetName }}{{ end }}
+FROM (
+    SELECT
+        json,
+        struct_pack(
+{{- range $i, $c := .Columns }}{{ if $i }},{{ end }}
+            {{ quote $c.TargetName }} := CAST(json_extract_string(json, '$.{{ $c.SourcePath }}') AS {{ $c.SQLType }}){{ end }}
+        ) AS typed_row
+    FROM read_ndjson_objects(
+        '{{ .LakeGlob }}',
+        compression = '{{ .Compression }}'
+    ) AS t(json)
+)
+ON CONFLICT (_record_hash) DO NOTHING;

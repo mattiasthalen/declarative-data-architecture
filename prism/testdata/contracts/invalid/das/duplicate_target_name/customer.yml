@@ -1,0 +1,14 @@
+version: 1
+entity:
+  name: Customer
+schema:
+  primary_key: [customer_id]
+  columns:
+    - source_path: A
+      target_name: customer_id
+      type: BIGINT
+      mode: REQUIRED
+    - source_path: B
+      target_name: customer_id
+      type: STRING
+      mode: NULLABLE

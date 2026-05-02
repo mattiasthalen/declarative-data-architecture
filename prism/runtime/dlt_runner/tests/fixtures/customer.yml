@@ -1,0 +1,10 @@
+version: 1
+entity:
+  name: Customer
+incremental:
+  cursor: ModifiedDate
+  strategy: append
+schema:
+  primary_key: [customer_id]
+  columns:
+    - {source_path: CustomerID, target_name: customer_id, type: BIGINT, mode: REQUIRED}

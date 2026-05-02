@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prism.dev/schemas/das_source_v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "source"],
+  "properties": {
+    "version": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "base_url"],
+      "properties": {
+        "provider": {"type": "string", "enum": ["odata"]},
+        "base_url": {"type": "string", "format": "uri"}
+      }
+    }
+  }
+}

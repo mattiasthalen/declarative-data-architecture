@@ -1,0 +1,29 @@
+# prism/.github/workflows/ci.yml
+name: ci
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  go-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.22" }
+      - name: Install build deps for go-duckdb (cgo)
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+      - name: Build
+        run: go build ./...
+      - name: Test
+        run: go test ./...
+
+  python-runner-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Run pytest
+        working-directory: runtime/dlt_runner
+        run: uv run --with pytest --with pyyaml --with dlt[filesystem] pytest -v
