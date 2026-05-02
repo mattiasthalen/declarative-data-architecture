@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoadSource(t *testing.T) {
-	src, err := LoadSource(filepath.FromSlash("../../testdata/contracts/valid/adventure_works/_source.yml"))
+	src, err := LoadSource(filepath.FromSlash("../../testdata/contracts/valid/das/adventure_works/_source.yml"))
 	require.NoError(t, err)
 	assert.Equal(t, 1, src.Version)
 	assert.Equal(t, "odata", src.Source.Provider)
@@ -17,7 +17,7 @@ func TestLoadSource(t *testing.T) {
 }
 
 func TestLoadEntity(t *testing.T) {
-	ent, err := LoadEntity(filepath.FromSlash("../../testdata/contracts/valid/adventure_works/customer.yml"))
+	ent, err := LoadEntity(filepath.FromSlash("../../testdata/contracts/valid/das/adventure_works/customer.yml"))
 	require.NoError(t, err)
 	assert.Equal(t, "Customer", ent.Entity.Name)
 	require.NotNil(t, ent.Incremental)
