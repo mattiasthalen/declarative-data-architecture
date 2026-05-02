@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/prism-data/prism/internal/contracts"
+	"github.com/prism-data/prism/internal/drift"
 	"github.com/prism-data/prism/internal/engine"
 	"github.com/prism-data/prism/internal/engine/duckdb"
 	"github.com/prism-data/prism/internal/naming"
@@ -122,10 +123,20 @@ func buildOneEntity(ctx context.Context, e *duckdb.Engine, schema, sourceID, lak
 	})); err != nil {
 		return err
 	}
-	return e.Exec(ctx, d.CreateOrReplaceCurrentView(engine.CurrentViewSpec{
+	if err := e.Exec(ctx, d.CreateOrReplaceCurrentView(engine.CurrentViewSpec{
 		Schema: schema, Name: viewName, HistorizedTable: tabName,
 		PrimaryKey: ent.Entity.Schema.PrimaryKey,
-	}))
+	})); err != nil {
+		return err
+	}
+	results, err := drift.DetectNullsInRequired(ctx, e, schema, tabName, cols)
+	if err != nil {
+		return fmt.Errorf("drift detection: %w", err)
+	}
+	for _, r := range results {
+		return fmt.Errorf("DRIFT: required column %q has %d NULLs in %s.%s — check contract source_path", r.Column, r.NullCount, schema, tabName)
+	}
+	return nil
 }
 
 func toEngineColumns(cs []contracts.Column) ([]engine.Column, error) {
