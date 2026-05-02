@@ -1,16 +1,5 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR}/.claude/hooks/run-hook.cmd\" session-start",
-            "async": false
-          }
-        ]
-      }
-    ]
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }
