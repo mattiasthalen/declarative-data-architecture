@@ -20,8 +20,6 @@ def test_build_source_passes_base_url():
 
 def test_invariants_are_returned():
     invariants = odata.PRISM_INVARIANTS
-    assert invariants["max_table_nesting"] == 0
-    assert invariants["naming_convention"] == "direct"
+    assert invariants["write_disposition"] == "append"
     assert invariants["loader_file_format"] == "jsonl"
-    assert invariants["add_dlt_id"] is True
-    assert invariants["add_dlt_load_id"] is True
+    assert set(invariants.keys()) == {"write_disposition", "loader_file_format"}

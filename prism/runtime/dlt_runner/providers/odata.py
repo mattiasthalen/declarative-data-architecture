@@ -18,10 +18,6 @@ def _dlt_rest_api_source(**kwargs: Any) -> Any:
 PRISM_INVARIANTS: dict[str, Any] = {
     "write_disposition":  "append",
     "loader_file_format": "jsonl",
-    "max_table_nesting":  0,
-    "naming_convention":  "direct",
-    "add_dlt_id":         True,
-    "add_dlt_load_id":    True,
 }
 
 
@@ -59,4 +55,5 @@ def build_source(src_cfg: dict, entities: list[dict]):
     return _dlt_rest_api_source(
         base_url=base_url,
         resources=resources,
+        max_table_nesting=0,
     )

@@ -8,6 +8,7 @@ to <lake_dir>/<source_id>/<entity>/. All transformation invariants live here
 
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 from typing import IO, Any
@@ -54,6 +55,12 @@ def run(
     src, ents = load_contracts(source_path, entity_paths)
     source_id = Path(source_path).parent.name  # contracts/das/<source_id>/_source.yml
 
+    # Apply dlt invariants that are not valid pipeline.run() kwargs via env vars
+    # (dlt's standard config interface). setdefault preserves explicit test overrides.
+    os.environ.setdefault("SCHEMA__NAMING_CONVENTION", "direct")
+    os.environ.setdefault("NORMALIZE__ADD_DLT_ID", "true")
+    os.environ.setdefault("NORMALIZE__ADD_DLT_LOAD_ID", "true")
+
     em.source_start(source_id)
     started = time.monotonic()
 
@@ -62,7 +69,7 @@ def run(
         pipeline = _make_pipeline(source_id, Path(lake_dir))
         for ent in ents:
             em.entity_start(ent["entity"]["name"])
-        info = pipeline.run(dlt_source, **PRISM_INVARIANTS)
+        info = pipeline.run(dlt_source, write_disposition="append", loader_file_format="jsonl")
         load_id = info.loads_ids[0] if getattr(info, "loads_ids", None) else "unknown"
         for ent in ents:
             em.entity_end(ent["entity"]["name"], rows=-1, load_id=load_id, files=-1)

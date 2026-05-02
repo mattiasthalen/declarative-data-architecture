@@ -1,5 +1,6 @@
 import io
 import json
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -32,9 +33,18 @@ def test_run_invokes_pipeline_with_invariants(tmp_path):
             bs.assert_called_once()
             mp.assert_called_once()
             fake_pipeline.run.assert_called_once()
-            kwargs = fake_pipeline.run.call_args.kwargs
-            assert kwargs["loader_file_format"] == "jsonl"
-            assert kwargs["write_disposition"] == "append"
+            call_args = fake_pipeline.run.call_args
+            # Only positional: the dlt source
+            assert call_args.args[0] is bs.return_value
+            # Only these two kwargs must be passed to pipeline.run()
+            assert call_args.kwargs == {
+                "write_disposition": "append",
+                "loader_file_format": "jsonl",
+            }
+            # Invariants applied via env vars
+            assert os.environ.get("SCHEMA__NAMING_CONVENTION") == "direct"
+            assert os.environ.get("NORMALIZE__ADD_DLT_ID") == "true"
+            assert os.environ.get("NORMALIZE__ADD_DLT_LOAD_ID") == "true"
 
     events = [json.loads(l) for l in buf.getvalue().splitlines()]
     kinds = [e["event"] for e in events]
