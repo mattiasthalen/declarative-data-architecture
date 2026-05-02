@@ -70,20 +70,18 @@ func addDasDiscover(root *cobra.Command) {
 	addDas(root).AddCommand(cmd)
 }
 
-// dasGroupOnce ensures `prism das` is added exactly once even if multiple
-// `addDas*` registrars are called.
-var dasGroup *cobra.Command
-
 func addDas(root *cobra.Command) *cobra.Command {
-	if dasGroup != nil {
-		return dasGroup
+	for _, c := range root.Commands() {
+		if c.Use == "das" {
+			return c
+		}
 	}
-	dasGroup = &cobra.Command{
+	g := &cobra.Command{
 		Use:   "das",
 		Short: "DAS layer subcommands (discover/land/build/run)",
 	}
-	root.AddCommand(dasGroup)
-	return dasGroup
+	root.AddCommand(g)
+	return g
 }
 
 func fetchMetadata(ctx context.Context, baseURL string) ([]byte, error) {

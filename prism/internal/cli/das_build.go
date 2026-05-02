@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -133,8 +134,12 @@ func buildOneEntity(ctx context.Context, e *duckdb.Engine, schema, sourceID, lak
 	if err != nil {
 		return fmt.Errorf("drift detection: %w", err)
 	}
-	for _, r := range results {
-		return fmt.Errorf("DRIFT: required column %q has %d NULLs in %s.%s — check contract source_path", r.Column, r.NullCount, schema, tabName)
+	if len(results) > 0 {
+		var msgs []string
+		for _, r := range results {
+			msgs = append(msgs, fmt.Sprintf("%s (%d nulls)", r.Column, r.NullCount))
+		}
+		return fmt.Errorf("DRIFT: NULLs in REQUIRED columns of %s.%s: %s — check contract source_path", schema, tabName, strings.Join(msgs, ", "))
 	}
 	return nil
 }
