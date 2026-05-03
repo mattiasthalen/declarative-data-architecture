@@ -1,0 +1,13 @@
+version: 1
+entity: {id: CUSTOMER, name: CUSTOMER, definition: "A customer"}
+attributes:
+  - {id: NAME, definition: "x", type: STRING}
+  - {id: NAME, definition: "y", type: STRING}
+mapping_groups:
+  - name: aw
+    tables:
+      - source: adventure_works
+        entity: customer
+        primary_keys: ["customer_id"]
+        attributes:
+          - {id: NAME, transformation_expression: company_name}

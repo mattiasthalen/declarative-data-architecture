@@ -1,0 +1,13 @@
+version: 1
+entity: {id: CUSTOMER, name: CUSTOMER, definition: "A customer"}
+attributes:
+  - {id: CUSTOMER_NAME, definition: "x", type: STRING}
+mapping_groups:
+  - name: aw
+    allow_multiple_identifiers: true   # M2 rejects this
+    tables:
+      - source: adventure_works
+        entity: customer
+        primary_keys: ["customer_id"]
+        attributes:
+          - {id: CUSTOMER_NAME, transformation_expression: company_name}
