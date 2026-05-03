@@ -141,3 +141,35 @@ func RenderMergeRelationship(spec engine.MergeRelationshipSpec) (string, error) 
 		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
 	})
 }
+
+func RenderRecomputeIdfrRowSt(spec engine.RecomputeIdfrRowStSpec) (string, error) {
+	return render("dab_recompute_idfr.sql.tmpl", struct {
+		Schema, Table, KeyCol, IdfrCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+		spec.Entity + "_idfr",
+	})
+}
+
+func RenderRecomputeDescriptorRowSt(spec engine.RecomputeDescriptorRowStSpec) (string, error) {
+	return render("dab_recompute_descriptor.sql.tmpl", struct {
+		Schema, Table, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__descriptor",
+		spec.Entity + "_key",
+	})
+}
+
+func RenderRecomputeRelationshipRowSt(spec engine.RecomputeRelationshipRowStSpec) (string, error) {
+	return render("dab_recompute_relationship.sql.tmpl", struct {
+		Schema, Table, KeyCol, RelatedCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.Related + spec.Suffix + "__rel",
+		spec.Entity + "_key",
+		spec.Related + "_key",
+	})
+}

@@ -153,3 +153,30 @@ func TestRenderMergeRelationship_Golden(t *testing.T) {
 	want := readGolden(t, "dab_merge_relationship.sql.golden")
 	require.Equal(t, want, got)
 }
+
+func TestRenderRecomputeIdfr_Golden(t *testing.T) {
+	got, err := RenderRecomputeIdfrRowSt(engine.RecomputeIdfrRowStSpec{
+		Schema: "dab", Entity: "customer",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_recompute_idfr.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderRecomputeDescriptor_Golden(t *testing.T) {
+	got, err := RenderRecomputeDescriptorRowSt(engine.RecomputeDescriptorRowStSpec{
+		Schema: "dab", Entity: "customer",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_recompute_descriptor.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderRecomputeRelationship_Golden(t *testing.T) {
+	got, err := RenderRecomputeRelationshipRowSt(engine.RecomputeRelationshipRowStSpec{
+		Schema: "dab", Entity: "customer", Related: "order",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_recompute_relationship.sql.golden")
+	require.Equal(t, want, got)
+}

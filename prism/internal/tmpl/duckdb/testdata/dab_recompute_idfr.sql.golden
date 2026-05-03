@@ -1,0 +1,24 @@
+WITH ranked AS (
+    SELECT
+        "customer_key",
+        "customer_idfr",
+        eff_tmstp,
+        ver_tmstp,
+        ROW_NUMBER() OVER (
+            PARTITION BY "customer_key", "customer_idfr"
+            ORDER BY eff_tmstp ASC, ver_tmstp ASC
+        ) AS new_seq_nbr,
+        ROW_NUMBER() OVER (
+            PARTITION BY "customer_key", "customer_idfr"
+            ORDER BY eff_tmstp DESC, ver_tmstp DESC
+        ) AS inv_rnk
+    FROM "dab"."customer__idfr"
+)
+UPDATE "dab"."customer__idfr" d
+SET row_st  = CASE WHEN r.inv_rnk = 1 THEN 'Y' ELSE 'N' END,
+    seq_nbr = r.new_seq_nbr
+FROM ranked r
+WHERE d."customer_key"  = r."customer_key"
+  AND d."customer_idfr" = r."customer_idfr"
+  AND d.eff_tmstp           = r.eff_tmstp
+  AND d.ver_tmstp           = r.ver_tmstp;
