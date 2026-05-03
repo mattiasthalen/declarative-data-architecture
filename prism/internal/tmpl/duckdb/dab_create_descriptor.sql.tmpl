@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS {{ quote .Schema }}.{{ quote .Table }} (
+    {{ quote .KeyCol }}  VARCHAR   NOT NULL,
+    type_key             VARCHAR   NOT NULL,
+    eff_tmstp            TIMESTAMP NOT NULL,
+    ver_tmstp            TIMESTAMP NOT NULL,
+    seq_nbr              BIGINT    NOT NULL,
+    row_st               CHAR(1)   NOT NULL,
+    sta_tmstp            TIMESTAMP,
+    end_tmstp            TIMESTAMP,
+    val_str              VARCHAR,
+    val_num              DOUBLE,
+    uom                  VARCHAR,
+    data_key             VARCHAR   NOT NULL,
+    inst_key             VARCHAR   NOT NULL,
+    inst_row_key         VARCHAR   NOT NULL,
+    popln_tmstp          TIMESTAMP NOT NULL,
+    PRIMARY KEY ({{ quote .KeyCol }}, type_key, eff_tmstp, ver_tmstp)
+);

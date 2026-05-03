@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,4 +73,42 @@ func TestCreateCurrentView(t *testing.T) {
 	})
 	require.NoError(t, err)
 	goldenAssert(t, "create_current_view", got)
+}
+
+// readGolden reads a golden file from testdata and returns its content trimmed.
+func readGolden(t *testing.T, name string) string {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join("testdata", name))
+	require.NoError(t, err)
+	return strings.TrimSpace(string(b))
+}
+
+func TestRenderCreateIdfr_Golden(t *testing.T) {
+	got, err := RenderCreateIdfr(engine.IdfrTableSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_idfr.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateFocal_Golden(t *testing.T) {
+	got, err := RenderCreateFocal(engine.FocalTableSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_focal.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateDescriptor_Golden(t *testing.T) {
+	got, err := RenderCreateDescriptor(engine.DescriptorTableSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_descriptor.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateRelationship_Golden(t *testing.T) {
+	got, err := RenderCreateRelationship(engine.RelationshipTableSpec{
+		Schema: "dab", Entity: "customer", Related: "order",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_relationship.sql.golden")
+	require.Equal(t, want, got)
 }

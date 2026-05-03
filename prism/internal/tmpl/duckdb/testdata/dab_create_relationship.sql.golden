@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS "dab"."customer__order__rel" (
+    "customer_key"      VARCHAR   NOT NULL,
+    "order_key"  VARCHAR   NOT NULL,
+    type_key                 VARCHAR   NOT NULL,
+    eff_tmstp                TIMESTAMP NOT NULL,
+    ver_tmstp                TIMESTAMP NOT NULL,
+    seq_nbr                  BIGINT    NOT NULL,
+    row_st                   CHAR(1)   NOT NULL,
+    data_key                 VARCHAR   NOT NULL,
+    inst_key                 VARCHAR   NOT NULL,
+    inst_row_key             VARCHAR   NOT NULL,
+    popln_tmstp              TIMESTAMP NOT NULL,
+    PRIMARY KEY ("customer_key", "order_key", type_key, eff_tmstp, ver_tmstp)
+);

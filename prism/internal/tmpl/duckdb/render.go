@@ -51,3 +51,47 @@ func RenderAppendHistorized(spec engine.HistorizedAppendSpec) (string, error) {
 func RenderCreateCurrentView(spec engine.CurrentViewSpec) (string, error) {
 	return render("create_current_view.sql.tmpl", spec)
 }
+
+// --- M2 (DAB) renderers ----------------------------------------------------
+
+func RenderCreateIdfr(spec engine.IdfrTableSpec) (string, error) {
+	return render("dab_create_idfr.sql.tmpl", struct {
+		Schema, Table, KeyCol, IdfrCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+		spec.Entity + "_idfr",
+	})
+}
+
+func RenderCreateFocal(spec engine.FocalTableSpec) (string, error) {
+	return render("dab_create_focal.sql.tmpl", struct {
+		Schema, Table, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity,
+		spec.Entity + "_key",
+	})
+}
+
+func RenderCreateDescriptor(spec engine.DescriptorTableSpec) (string, error) {
+	return render("dab_create_descriptor.sql.tmpl", struct {
+		Schema, Table, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__descriptor",
+		spec.Entity + "_key",
+	})
+}
+
+func RenderCreateRelationship(spec engine.RelationshipTableSpec) (string, error) {
+	return render("dab_create_relationship.sql.tmpl", struct {
+		Schema, Table, KeyCol, RelatedCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.Related + spec.Suffix + "__rel",
+		spec.Entity + "_key",
+		spec.Related + "_key",
+	})
+}
