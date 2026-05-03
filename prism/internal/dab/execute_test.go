@@ -162,6 +162,82 @@ CREATE TABLE das__adventure_works.order__current (
 );
 `
 
+const fixtureDASStripeCustomerCurrent = `
+CREATE SCHEMA IF NOT EXISTS das__stripe;
+CREATE TABLE das__stripe.customer__current (
+    stripe_id        VARCHAR  NOT NULL,
+    name             VARCHAR,
+    total_revenue    BIGINT,
+    currency         VARCHAR,
+    aw_customer_id   BIGINT   NOT NULL,
+    updated          TIMESTAMP NOT NULL,
+    _loaded_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`
+
+func TestExecute_MultiSourceUnification(t *testing.T) {
+	ctx := context.Background()
+	eng, err := duckdb.Open(":memory:")
+	require.NoError(t, err)
+	defer eng.Close()
+
+	require.NoError(t, eng.Exec(ctx, fixtureDASCustomerCurrent))
+	require.NoError(t, eng.Exec(ctx, fixtureDASOrderCurrent))
+	require.NoError(t, eng.Exec(ctx, fixtureDASStripeCustomerCurrent))
+	require.NoError(t, eng.Exec(ctx, `
+		INSERT INTO das__adventure_works.customer__current
+		(customer_id, company_name, lifetime_value, created_at, deactivated_at, modified_date)
+		VALUES (1, 'Acme', 1000.0, TIMESTAMP '2023-06-01', NULL, TIMESTAMP '2024-01-15');
+	`))
+	require.NoError(t, eng.Exec(ctx, `
+		INSERT INTO das__stripe.customer__current
+		(stripe_id, name, total_revenue, currency, aw_customer_id, updated)
+		VALUES ('cus_xyz', 'Acme Corporation', 250000, 'USD', 1, TIMESTAMP '2024-03-01');
+	`))
+
+	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab/customer.yml")
+	require.NoError(t, err)
+	plan, err := dab.BuildEntityPlan(&contracts.FocalBundle{EntityID: "customer", Focal: f})
+	require.NoError(t, err)
+	require.NoError(t, dab.Execute(ctx, eng, plan))
+
+	// One focal row — same canonical IDFR string from both sources collapses to one surrogate.
+	row, err := eng.Query(ctx, `SELECT count(*) FROM dab.customer;`)
+	require.NoError(t, err)
+	defer row.Close()
+	row.Next()
+	var n int
+	require.NoError(t, row.Scan(&n))
+	require.Equal(t, 1, n)
+
+	// IDFR table: two rows — both sources emit the same idfr string ('CUSTOMER:1')
+	// so they share the same surrogate key (MD5), but their eff_tmstp values differ
+	// (AW: 2024-01-15, Stripe: 2024-03-01), so the dedup check (idfr, eff_tmstp)
+	// allows both to coexist. One row per source contribution, same surrogate.
+	row2, err := eng.Query(ctx, `SELECT count(*) FROM dab.customer__idfr;`)
+	require.NoError(t, err)
+	defer row2.Close()
+	row2.Next()
+	require.NoError(t, row2.Scan(&n))
+	require.Equal(t, 2, n)
+
+	// Both descriptor sources contributed CUSTOMER_NAME and CUSTOMER_LIFETIME_VALUE.
+	// ROW_ST = 'Y' selects the latest per (customer_key, type_key) by eff_tmstp.
+	// Stripe's updated 2024-03-01 > AW's modified_date 2024-01-15, so stripe wins.
+	row3, err := eng.Query(ctx, `
+		SELECT customer_name, customer_lifetime_value__amount
+		FROM dab.customer__current;
+	`)
+	require.NoError(t, err)
+	defer row3.Close()
+	row3.Next()
+	var name string
+	var amount float64
+	require.NoError(t, row3.Scan(&name, &amount))
+	require.Equal(t, "Acme Corporation", name)
+	require.Equal(t, 2500.0, amount) // 250000 / 100.0 from stripe
+}
+
 func TestExecute_Relationships(t *testing.T) {
 	ctx := context.Background()
 	eng, err := duckdb.Open(":memory:")
@@ -170,6 +246,7 @@ func TestExecute_Relationships(t *testing.T) {
 
 	require.NoError(t, eng.Exec(ctx, fixtureDASCustomerCurrent))
 	require.NoError(t, eng.Exec(ctx, fixtureDASOrderCurrent))
+	require.NoError(t, eng.Exec(ctx, fixtureDASStripeCustomerCurrent))
 	require.NoError(t, eng.Exec(ctx, `
 		INSERT INTO das__adventure_works.customer__current
 		(customer_id, company_name, lifetime_value, created_at, deactivated_at, modified_date)

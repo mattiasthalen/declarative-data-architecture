@@ -11,7 +11,7 @@
       "additionalProperties": false,
       "required": ["provider", "base_url"],
       "properties": {
-        "provider": {"type": "string", "enum": ["odata"]},
+        "provider": {"type": "string", "enum": ["odata", "rest"]},
         "base_url": {"type": "string", "format": "uri"}
       }
     }

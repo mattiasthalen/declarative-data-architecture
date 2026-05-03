@@ -1,0 +1,12 @@
+version: 1
+entity:
+  name: customer
+schema:
+  primary_key: [stripe_id]
+  columns:
+    - {source_path: id,                 target_name: stripe_id,        type: STRING, mode: REQUIRED}
+    - {source_path: name,               target_name: name,             type: STRING, mode: NULLABLE}
+    - {source_path: total_revenue,      target_name: total_revenue,    type: BIGINT, mode: NULLABLE}
+    - {source_path: currency,           target_name: currency,         type: STRING, mode: NULLABLE}
+    - {source_path: aw_customer_id,     target_name: aw_customer_id,   type: BIGINT, mode: REQUIRED}
+    - {source_path: updated,            target_name: updated,          type: TIMESTAMP, mode: REQUIRED}

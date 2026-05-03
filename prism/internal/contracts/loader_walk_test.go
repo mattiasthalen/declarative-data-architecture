@@ -12,15 +12,22 @@ import (
 func TestLoadAll(t *testing.T) {
 	bundle, err := LoadAll(filepath.FromSlash("../../testdata/contracts/valid/das"))
 	require.NoError(t, err)
-	require.Len(t, bundle, 1, "expect exactly one source under valid/das/")
-	src := bundle[0]
-	assert.Equal(t, "adventure_works", src.SourceID)
-	require.NotNil(t, src.Source)
-	assert.Equal(t, "odata", src.Source.Source.Provider)
+	// Two sources: adventure_works (odata) and stripe (rest) added in Task 18.
+	require.Len(t, bundle, 2, "expect exactly two sources under valid/das/")
+
+	byID := map[string]*SourceBundle{}
+	for _, b := range bundle {
+		byID[b.SourceID] = b
+	}
+
+	aw, ok := byID["adventure_works"]
+	require.True(t, ok, "adventure_works source not found")
+	require.NotNil(t, aw.Source)
+	assert.Equal(t, "odata", aw.Source.Source.Provider)
 	// adventure_works has customer + order entities (order added in Task 17).
-	require.Len(t, src.Entities, 2)
+	require.Len(t, aw.Entities, 2)
 	entsByID := map[string]EntityBundle{}
-	for _, e := range src.Entities {
+	for _, e := range aw.Entities {
 		entsByID[e.EntityID] = e
 	}
 	cust, ok := entsByID["customer"]
@@ -28,6 +35,13 @@ func TestLoadAll(t *testing.T) {
 	assert.Equal(t, "Customer", cust.Entity.Entity.Name)
 	_, ok = entsByID["order"]
 	require.True(t, ok, "order entity not found")
+
+	stripe, ok := byID["stripe"]
+	require.True(t, ok, "stripe source not found")
+	require.NotNil(t, stripe.Source)
+	assert.Equal(t, "rest", stripe.Source.Source.Provider)
+	require.Len(t, stripe.Entities, 1)
+	assert.Equal(t, "customer", stripe.Entities[0].EntityID)
 }
 
 func TestLoadAllRejectsBadDirName(t *testing.T) {

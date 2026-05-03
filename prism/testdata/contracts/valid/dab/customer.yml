@@ -76,3 +76,21 @@ mapping_groups:
         relationships:
           - id: CUSTOMER_PLACES_ORDER
             target_transformation_expression: "'ORDER:' || CAST(order_id AS VARCHAR)"
+
+  - name: stripe
+    tables:
+      - source: stripe
+        entity: customer
+        from: current
+        primary_keys:
+          - "'CUSTOMER:' || CAST(aw_customer_id AS VARCHAR)"
+        entity_effective_timestamp_expression: updated
+        attributes:
+          - id: CUSTOMER_NAME
+            transformation_expression: name
+          - id: CUSTOMER_LIFETIME_VALUE.AMOUNT
+            transformation_expression: total_revenue / 100.0
+          - id: CUSTOMER_LIFETIME_VALUE.CURRENCY
+            transformation_expression: currency
+          # Window members not bound from stripe; binding-completeness is per-table,
+          # so the active window simply isn't contributed by the stripe table.
