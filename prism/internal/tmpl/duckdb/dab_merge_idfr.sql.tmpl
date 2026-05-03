@@ -4,21 +4,25 @@ INSERT INTO {{ quote .Schema }}.{{ quote .Table }} (
     data_key, inst_key, inst_row_key, popln_tmstp
 )
 SELECT
-    md5(src.{{ quote .IdfrCol }}) AS {{ quote .KeyCol }},
-    src.{{ quote .IdfrCol }},
-    src.eff_tmstp,
-    CURRENT_TIMESTAMP             AS ver_tmstp,
-    1                             AS seq_nbr,
-    'Y'                           AS row_st,
-    'dab'                         AS data_key,
-    '{{ .MappingGroup }}'         AS inst_key,
-    '{{ .InstRowKey }}'           AS inst_row_key,
-    CURRENT_TIMESTAMP             AS popln_tmstp
+    md5(dedup.{{ quote .IdfrCol }}) AS {{ quote .KeyCol }},
+    dedup.{{ quote .IdfrCol }},
+    dedup.eff_tmstp,
+    CURRENT_TIMESTAMP               AS ver_tmstp,
+    1                               AS seq_nbr,
+    'Y'                             AS row_st,
+    'dab'                           AS data_key,
+    '{{ .MappingGroup }}'           AS inst_key,
+    '{{ .InstRowKey }}'             AS inst_row_key,
+    CURRENT_TIMESTAMP               AS popln_tmstp
 FROM (
+    SELECT {{ quote .IdfrCol }}, MAX(eff_tmstp) AS eff_tmstp
+    FROM (
 {{ .SourceCTE }}
-) src
+    ) raw
+    GROUP BY {{ quote .IdfrCol }}
+) dedup
 WHERE NOT EXISTS (
     SELECT 1 FROM {{ quote .Schema }}.{{ quote .Table }} d
-    WHERE d.{{ quote .IdfrCol }} = src.{{ quote .IdfrCol }}
-      AND d.eff_tmstp = src.eff_tmstp
+    WHERE d.{{ quote .IdfrCol }} = dedup.{{ quote .IdfrCol }}
+      AND d.eff_tmstp = dedup.eff_tmstp
 );

@@ -10,7 +10,7 @@ import (
 )
 
 func TestLoadFocal_HappyPath(t *testing.T) {
-	path := filepath.Join("..", "..", "testdata", "contracts", "valid", "dab", "customer.yml")
+	path := filepath.Join("..", "..", "testdata", "contracts", "valid", "dab_simple", "customer.yml")
 	f, err := contracts.LoadFocal(path)
 	require.NoError(t, err)
 	require.Equal(t, 1, f.Version)
@@ -29,7 +29,7 @@ func TestLoadFocal_HappyPath(t *testing.T) {
 }
 
 func TestLoadAllDab_WalksDirectory(t *testing.T) {
-	dir := filepath.Join("..", "..", "testdata", "contracts", "valid", "dab")
+	dir := filepath.Join("..", "..", "testdata", "contracts", "valid", "dab_simple")
 	bs, err := contracts.LoadAllDab(dir)
 	require.NoError(t, err)
 	require.Len(t, bs, 1)

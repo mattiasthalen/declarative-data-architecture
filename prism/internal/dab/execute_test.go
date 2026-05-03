@@ -41,7 +41,7 @@ func TestExecute_SingleSourceSingleAttribute(t *testing.T) {
 		    (2, 'Globex',    500.0, TIMESTAMP '2023-09-01', TIMESTAMP '2024-04-01',  TIMESTAMP '2024-02-20 11:00:00');
 	`))
 
-	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab/customer.yml")
+	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab_simple/customer.yml")
 	require.NoError(t, err)
 	require.NoError(t, contracts.ValidateFocal(f))
 
@@ -116,7 +116,7 @@ func TestExecute_AtomicGroup_WindowMembers(t *testing.T) {
 		    (2, 'Globex', 500.0, TIMESTAMP '2023-09-01', TIMESTAMP '2024-04-01',    TIMESTAMP '2024-02-20 11:00:00');
 	`))
 
-	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab/customer.yml")
+	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab_simple/customer.yml")
 	require.NoError(t, err)
 	plan, err := dab.BuildEntityPlan(&contracts.FocalBundle{EntityID: "customer", Focal: f})
 	require.NoError(t, err)
@@ -150,5 +150,72 @@ func TestExecute_AtomicGroup_WindowMembers(t *testing.T) {
 	rows2.Next()
 	var n int
 	require.NoError(t, rows2.Scan(&n))
+	require.Equal(t, 2, n)
+}
+
+const fixtureDASOrderCurrent = `
+CREATE TABLE das__adventure_works.order__current (
+    order_id        BIGINT    NOT NULL,
+    customer_id     BIGINT    NOT NULL,
+    modified_date   TIMESTAMP NOT NULL,
+    _loaded_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`
+
+func TestExecute_Relationships(t *testing.T) {
+	ctx := context.Background()
+	eng, err := duckdb.Open(":memory:")
+	require.NoError(t, err)
+	defer eng.Close()
+
+	require.NoError(t, eng.Exec(ctx, fixtureDASCustomerCurrent))
+	require.NoError(t, eng.Exec(ctx, fixtureDASOrderCurrent))
+	require.NoError(t, eng.Exec(ctx, `
+		INSERT INTO das__adventure_works.customer__current
+		(customer_id, company_name, lifetime_value, created_at, deactivated_at, modified_date)
+		VALUES (1, 'Acme', 1000.0, TIMESTAMP '2023-06-01', NULL, TIMESTAMP '2024-01-15');
+	`))
+	require.NoError(t, eng.Exec(ctx, `
+		INSERT INTO das__adventure_works.order__current
+		(order_id, customer_id, modified_date)
+		VALUES
+		    (101, 1, TIMESTAMP '2024-01-20'),
+		    (102, 1, TIMESTAMP '2024-02-05');
+	`))
+
+	custFocal, err := contracts.LoadFocal("../../testdata/contracts/valid/dab/customer.yml")
+	require.NoError(t, err)
+	orderFocal, err := contracts.LoadFocal("../../testdata/contracts/valid/dab/order.yml")
+	require.NoError(t, err)
+
+	custPlan, err := dab.BuildEntityPlan(&contracts.FocalBundle{EntityID: "customer", Focal: custFocal})
+	require.NoError(t, err)
+	orderPlan, err := dab.BuildEntityPlan(&contracts.FocalBundle{EntityID: "order", Focal: orderFocal})
+	require.NoError(t, err)
+
+	require.NoError(t, dab.Execute(ctx, eng, custPlan))
+	require.NoError(t, dab.Execute(ctx, eng, orderPlan))
+
+	// Two rows in the relationship table, ROW_ST = 'Y'.
+	row, err := eng.Query(ctx, `SELECT count(*) FROM dab.customer__order__rel WHERE row_st = 'Y';`)
+	require.NoError(t, err)
+	defer row.Close()
+	row.Next()
+	var n int
+	require.NoError(t, row.Scan(&n))
+	require.Equal(t, 2, n)
+
+	// The customer_key on the relationship table matches the focal table.
+	row2, err := eng.Query(ctx, `
+		SELECT count(*)
+		FROM dab.customer__order__rel r
+		JOIN dab.customer c ON c.customer_key = r.customer_key
+		JOIN dab.order    o ON o.order_key    = r.order_key
+		WHERE r.row_st = 'Y';
+	`)
+	require.NoError(t, err)
+	defer row2.Close()
+	row2.Next()
+	require.NoError(t, row2.Scan(&n))
 	require.Equal(t, 2, n)
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func TestBuildPlan_FromCustomerFixture(t *testing.T) {
-	f, err := contracts.LoadFocal(filepath.Join("..", "..", "testdata", "contracts", "valid", "dab", "customer.yml"))
+	f, err := contracts.LoadFocal(filepath.Join("..", "..", "testdata", "contracts", "valid", "dab_simple", "customer.yml"))
 	require.NoError(t, err)
 	require.NoError(t, contracts.ValidateFocal(f))
 

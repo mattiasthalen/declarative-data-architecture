@@ -17,10 +17,17 @@ func TestLoadAll(t *testing.T) {
 	assert.Equal(t, "adventure_works", src.SourceID)
 	require.NotNil(t, src.Source)
 	assert.Equal(t, "odata", src.Source.Source.Provider)
-	require.Len(t, src.Entities, 1)
-	ent := src.Entities[0]
-	assert.Equal(t, "customer", ent.EntityID)
-	assert.Equal(t, "Customer", ent.Entity.Entity.Name)
+	// adventure_works has customer + order entities (order added in Task 17).
+	require.Len(t, src.Entities, 2)
+	entsByID := map[string]EntityBundle{}
+	for _, e := range src.Entities {
+		entsByID[e.EntityID] = e
+	}
+	cust, ok := entsByID["customer"]
+	require.True(t, ok, "customer entity not found")
+	assert.Equal(t, "Customer", cust.Entity.Entity.Name)
+	_, ok = entsByID["order"]
+	require.True(t, ok, "order entity not found")
 }
 
 func TestLoadAllRejectsBadDirName(t *testing.T) {
