@@ -238,6 +238,100 @@ func TestExecute_MultiSourceUnification(t *testing.T) {
 	require.Equal(t, 2500.0, amount) // 250000 / 100.0 from stripe
 }
 
+func TestExecute_BiTemporalRowStFlip(t *testing.T) {
+	ctx := context.Background()
+	eng, err := duckdb.Open(":memory:")
+	require.NoError(t, err)
+	defer eng.Close()
+
+	require.NoError(t, eng.Exec(ctx, fixtureDASCustomerCurrent))
+
+	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab_simple/customer.yml")
+	require.NoError(t, err)
+	plan, err := dab.BuildEntityPlan(&contracts.FocalBundle{EntityID: "customer", Focal: f})
+	require.NoError(t, err)
+
+	// Build #1: customer_id=1 with company_name='Acme', modified_date=2024-01-15
+	require.NoError(t, eng.Exec(ctx, `
+		INSERT INTO das__adventure_works.customer__current
+		(customer_id, company_name, lifetime_value, modified_date)
+		VALUES (1, 'Acme', 1000.0, TIMESTAMP '2024-01-15');
+	`))
+	require.NoError(t, dab.Execute(ctx, eng, plan))
+
+	// Build #2: same customer, but DAS now reflects a rename (Acme -> AcmeCorp, modified_date=2024-06-01).
+	require.NoError(t, eng.Exec(ctx, `
+		UPDATE das__adventure_works.customer__current
+		SET company_name = 'AcmeCorp', modified_date = TIMESTAMP '2024-06-01'
+		WHERE customer_id = 1;
+	`))
+	require.NoError(t, dab.Execute(ctx, eng, plan))
+
+	// Two descriptor rows for CUSTOMER_NAME on this customer; latest is 'Y',
+	// older is 'N'.
+	row, err := eng.Query(ctx, `
+		SELECT row_st, val_str
+		FROM dab.customer__descriptor
+		WHERE type_key = (SELECT md5('CUSTOMER:CUSTOMER_NAME'))
+		ORDER BY eff_tmstp ASC;
+	`)
+	require.NoError(t, err)
+	defer row.Close()
+	type r struct {
+		Status string
+		Value  string
+	}
+	var got []r
+	for row.Next() {
+		var s, v string
+		require.NoError(t, row.Scan(&s, &v))
+		got = append(got, r{s, v})
+	}
+	require.Equal(t, []r{{"N", "Acme"}, {"Y", "AcmeCorp"}}, got)
+
+	// __current view returns the latest only.
+	row2, err := eng.Query(ctx, `SELECT customer_name FROM dab.customer__current;`)
+	require.NoError(t, err)
+	defer row2.Close()
+	row2.Next()
+	var name string
+	require.NoError(t, row2.Scan(&name))
+	require.Equal(t, "AcmeCorp", name)
+}
+
+func TestExecute_Idempotency(t *testing.T) {
+	ctx := context.Background()
+	eng, err := duckdb.Open(":memory:")
+	require.NoError(t, err)
+	defer eng.Close()
+
+	require.NoError(t, eng.Exec(ctx, fixtureDASCustomerCurrent))
+	require.NoError(t, eng.Exec(ctx, `
+		INSERT INTO das__adventure_works.customer__current
+		(customer_id, company_name, lifetime_value, modified_date)
+		VALUES (1, 'Acme', 1000.0, TIMESTAMP '2024-01-15');
+	`))
+
+	f, err := contracts.LoadFocal("../../testdata/contracts/valid/dab_simple/customer.yml")
+	require.NoError(t, err)
+	plan, err := dab.BuildEntityPlan(&contracts.FocalBundle{EntityID: "customer", Focal: f})
+	require.NoError(t, err)
+
+	require.NoError(t, dab.Execute(ctx, eng, plan))
+	require.NoError(t, dab.Execute(ctx, eng, plan))
+
+	// After two builds with no DAS changes, descriptor table should have
+	// exactly the rows from build #1 (idempotent NOT EXISTS guard).
+	row, err := eng.Query(ctx, `SELECT count(*) FROM dab.customer__descriptor;`)
+	require.NoError(t, err)
+	defer row.Close()
+	row.Next()
+	var n int
+	require.NoError(t, row.Scan(&n))
+	// 1 customer × 3 outer attributes (CUSTOMER_NAME, CUSTOMER_LIFETIME_VALUE, CUSTOMER_ACTIVE_WINDOW) = 3.
+	require.Equal(t, 3, n)
+}
+
 func TestExecute_Relationships(t *testing.T) {
 	ctx := context.Background()
 	eng, err := duckdb.Open(":memory:")
