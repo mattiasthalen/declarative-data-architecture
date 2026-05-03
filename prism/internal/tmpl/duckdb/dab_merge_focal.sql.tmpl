@@ -1,0 +1,16 @@
+INSERT INTO {{ quote .Schema }}.{{ quote .Table }} (
+    {{ quote .KeyCol }}, eff_tmstp, ver_tmstp, row_st, data_key, popln_tmstp
+)
+SELECT
+    {{ quote .KeyCol }},
+    MIN(eff_tmstp)    AS eff_tmstp,
+    CURRENT_TIMESTAMP AS ver_tmstp,
+    'Y'               AS row_st,
+    'dab'             AS data_key,
+    CURRENT_TIMESTAMP AS popln_tmstp
+FROM {{ quote .Schema }}.{{ quote .IdfrTable }}
+GROUP BY {{ quote .KeyCol }}
+ON CONFLICT ({{ quote .KeyCol }}) DO UPDATE
+SET eff_tmstp   = LEAST(eff_tmstp,  EXCLUDED.eff_tmstp),
+    ver_tmstp   = EXCLUDED.ver_tmstp,
+    popln_tmstp = EXCLUDED.popln_tmstp;

@@ -112,3 +112,44 @@ func TestRenderCreateRelationship_Golden(t *testing.T) {
 	want := readGolden(t, "dab_create_relationship.sql.golden")
 	require.Equal(t, want, got)
 }
+
+func TestRenderMergeIdfr_Golden(t *testing.T) {
+	got, err := RenderMergeIdfr(engine.MergeIdfrSpec{
+		Schema: "dab", Entity: "customer",
+		MappingGroup: "adventure_works",
+		InstRowKey:   "adventure_works.customer",
+		SourceCTE: "    SELECT 'CUSTOMER:' || CAST(customer_id AS VARCHAR) AS \"customer_idfr\",\n           modified_date AS eff_tmstp\n    FROM \"das__adventure_works\".\"customer__current\"",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_idfr.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeFocal_Golden(t *testing.T) {
+	got, err := RenderMergeFocal(engine.MergeFocalSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_focal.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeDescriptor_Golden(t *testing.T) {
+	got, err := RenderMergeDescriptor(engine.MergeDescriptorSpec{
+		Schema: "dab", Entity: "customer",
+		MappingGroup: "adventure_works", InstRowKey: "adventure_works.customer",
+		SourceCTE: "    SELECT * FROM \"das__adventure_works\".\"customer__current\"",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_descriptor.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeRelationship_Golden(t *testing.T) {
+	got, err := RenderMergeRelationship(engine.MergeRelationshipSpec{
+		Schema: "dab", Entity: "customer", Related: "order",
+		MappingGroup: "adventure_works", InstRowKey: "adventure_works.customer",
+		SourceCTE: "    SELECT * FROM \"das__adventure_works\".\"customer__current\"",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_relationship.sql.golden")
+	require.Equal(t, want, got)
+}

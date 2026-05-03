@@ -1,0 +1,27 @@
+INSERT INTO {{ quote .Schema }}.{{ quote .Table }} (
+    {{ quote .KeyCol }}, {{ quote .RelatedCol }}, type_key,
+    eff_tmstp, ver_tmstp, seq_nbr, row_st,
+    data_key, inst_key, inst_row_key, popln_tmstp
+)
+SELECT
+    src.{{ quote .KeyCol }},
+    src.{{ quote .RelatedCol }},
+    src.type_key,
+    src.eff_tmstp,
+    CURRENT_TIMESTAMP AS ver_tmstp,
+    1                 AS seq_nbr,
+    'Y'               AS row_st,
+    'dab'                 AS data_key,
+    '{{ .MappingGroup }}' AS inst_key,
+    '{{ .InstRowKey }}'   AS inst_row_key,
+    CURRENT_TIMESTAMP     AS popln_tmstp
+FROM (
+{{ .SourceCTE }}
+) src
+WHERE NOT EXISTS (
+    SELECT 1 FROM {{ quote .Schema }}.{{ quote .Table }} d
+    WHERE d.{{ quote .KeyCol }}     = src.{{ quote .KeyCol }}
+      AND d.{{ quote .RelatedCol }} = src.{{ quote .RelatedCol }}
+      AND d.type_key                = src.type_key
+      AND d.eff_tmstp               = src.eff_tmstp
+);

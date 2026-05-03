@@ -95,3 +95,49 @@ func RenderCreateRelationship(spec engine.RelationshipTableSpec) (string, error)
 		spec.Related + "_key",
 	})
 }
+
+func RenderMergeIdfr(spec engine.MergeIdfrSpec) (string, error) {
+	return render("dab_merge_idfr.sql.tmpl", struct {
+		Schema, Table, KeyCol, IdfrCol, MappingGroup, InstRowKey, SourceCTE string
+	}{
+		spec.Schema,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+		spec.Entity + "_idfr",
+		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
+	})
+}
+
+func RenderMergeFocal(spec engine.MergeFocalSpec) (string, error) {
+	return render("dab_merge_focal.sql.tmpl", struct {
+		Schema, Table, IdfrTable, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+	})
+}
+
+func RenderMergeDescriptor(spec engine.MergeDescriptorSpec) (string, error) {
+	return render("dab_merge_descriptor.sql.tmpl", struct {
+		Schema, Table, KeyCol, MappingGroup, InstRowKey, SourceCTE string
+	}{
+		spec.Schema,
+		spec.Entity + "__descriptor",
+		spec.Entity + "_key",
+		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
+	})
+}
+
+func RenderMergeRelationship(spec engine.MergeRelationshipSpec) (string, error) {
+	return render("dab_merge_relationship.sql.tmpl", struct {
+		Schema, Table, KeyCol, RelatedCol, MappingGroup, InstRowKey, SourceCTE string
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.Related + spec.Suffix + "__rel",
+		spec.Entity + "_key",
+		spec.Related + "_key",
+		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
+	})
+}

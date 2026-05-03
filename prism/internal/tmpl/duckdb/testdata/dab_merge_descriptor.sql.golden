@@ -1,0 +1,33 @@
+INSERT INTO "dab"."customer__descriptor" (
+    "customer_key", type_key,
+    eff_tmstp, ver_tmstp, seq_nbr, row_st,
+    sta_tmstp, end_tmstp, val_str, val_num, uom,
+    data_key, inst_key, inst_row_key, popln_tmstp
+)
+SELECT
+    src."customer_key",
+    src.type_key,
+    src.eff_tmstp,
+    CURRENT_TIMESTAMP AS ver_tmstp,
+    1                 AS seq_nbr,
+    'Y'               AS row_st,
+    src.sta_tmstp, src.end_tmstp,
+    src.val_str, src.val_num, src.uom,
+    'dab'                 AS data_key,
+    'adventure_works' AS inst_key,
+    'adventure_works.customer'   AS inst_row_key,
+    CURRENT_TIMESTAMP     AS popln_tmstp
+FROM (
+    SELECT * FROM "das__adventure_works"."customer__current"
+) src
+WHERE NOT EXISTS (
+    SELECT 1 FROM "dab"."customer__descriptor" d
+    WHERE d."customer_key" = src."customer_key"
+      AND d.type_key            = src.type_key
+      AND d.eff_tmstp           = src.eff_tmstp
+      AND coalesce(d.val_str, '')                    = coalesce(src.val_str, '')
+      AND coalesce(CAST(d.val_num   AS VARCHAR), '') = coalesce(CAST(src.val_num   AS VARCHAR), '')
+      AND coalesce(d.uom, '')                        = coalesce(src.uom, '')
+      AND coalesce(CAST(d.sta_tmstp AS VARCHAR), '') = coalesce(CAST(src.sta_tmstp AS VARCHAR), '')
+      AND coalesce(CAST(d.end_tmstp AS VARCHAR), '') = coalesce(CAST(src.end_tmstp AS VARCHAR), '')
+);
