@@ -1,0 +1,51 @@
+version: 1
+
+entity:
+  id: CUSTOMER
+  name: CUSTOMER
+  definition: "A customer account"
+
+attributes:
+  - id: CUSTOMER_NAME
+    definition: "Display name of the customer"
+    type: STRING
+    effective_timestamp: true
+
+  - id: CUSTOMER_LIFETIME_VALUE
+    definition: "Total monetary value to date"
+    effective_timestamp: true
+    group:
+      - id: AMOUNT
+        type: NUMBER
+      - id: CURRENCY
+        type: UNIT
+
+  - id: CUSTOMER_ACTIVE_WINDOW
+    definition: "Window during which the customer is active"
+    effective_timestamp: true
+    group:
+      - id: START
+        type: START_TIMESTAMP
+      - id: END
+        type: END_TIMESTAMP
+
+mapping_groups:
+  - name: adventure_works
+    tables:
+      - source: adventure_works
+        entity: customer
+        from: current
+        primary_keys:
+          - "'CUSTOMER:' || CAST(customer_id AS VARCHAR)"
+        entity_effective_timestamp_expression: modified_date
+        attributes:
+          - id: CUSTOMER_NAME
+            transformation_expression: company_name
+          - id: CUSTOMER_LIFETIME_VALUE.AMOUNT
+            transformation_expression: lifetime_value
+          - id: CUSTOMER_LIFETIME_VALUE.CURRENCY
+            transformation_expression: "'USD'"
+          - id: CUSTOMER_ACTIVE_WINDOW.START
+            transformation_expression: created_at
+          - id: CUSTOMER_ACTIVE_WINDOW.END
+            transformation_expression: deactivated_at

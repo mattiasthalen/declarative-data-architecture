@@ -1,0 +1,13 @@
+version: 1
+entity:
+  name: Order
+  description: Sales order header
+incremental:
+  cursor: ModifiedDate
+  strategy: append
+schema:
+  primary_key: [order_id]
+  columns:
+    - {source_path: OrderID,      target_name: order_id,      type: BIGINT,    mode: REQUIRED}
+    - {source_path: CustomerID,   target_name: customer_id,   type: BIGINT,    mode: REQUIRED}
+    - {source_path: ModifiedDate, target_name: modified_date, type: TIMESTAMP, mode: REQUIRED}

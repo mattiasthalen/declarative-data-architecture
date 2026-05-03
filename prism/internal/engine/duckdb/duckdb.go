@@ -83,3 +83,97 @@ func (dialect) CreateOrReplaceCurrentView(spec engine.CurrentViewSpec) string {
 	}
 	return s
 }
+
+// --- M2 (DAB) — panic-stubs until templates are wired in Phase 3 -----------
+
+func (dialect) CreateIdfrTableIfNotExists(spec engine.IdfrTableSpec) string {
+	s, err := tmpl.RenderCreateIdfr(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) CreateFocalTableIfNotExists(spec engine.FocalTableSpec) string {
+	s, err := tmpl.RenderCreateFocal(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) CreateDescriptorTableIfNotExists(spec engine.DescriptorTableSpec) string {
+	s, err := tmpl.RenderCreateDescriptor(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) CreateRelationshipTableIfNotExists(spec engine.RelationshipTableSpec) string {
+	s, err := tmpl.RenderCreateRelationship(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) MergeIdfr(spec engine.MergeIdfrSpec) string {
+	s, err := tmpl.RenderMergeIdfr(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) MergeFocal(spec engine.MergeFocalSpec) string {
+	s, err := tmpl.RenderMergeFocal(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) MergeDescriptor(spec engine.MergeDescriptorSpec) string {
+	s, err := tmpl.RenderMergeDescriptor(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) MergeRelationship(spec engine.MergeRelationshipSpec) string {
+	s, err := tmpl.RenderMergeRelationship(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) RecomputeIdfrRowSt(spec engine.RecomputeIdfrRowStSpec) string {
+	s, err := tmpl.RenderRecomputeIdfrRowSt(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) RecomputeDescriptorRowSt(spec engine.RecomputeDescriptorRowStSpec) string {
+	s, err := tmpl.RenderRecomputeDescriptorRowSt(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) RecomputeRelationshipRowSt(spec engine.RecomputeRelationshipRowStSpec) string {
+	s, err := tmpl.RenderRecomputeRelationshipRowSt(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) CreateOrReplaceGroupView(spec engine.GroupViewSpec) string {
+	s, err := tmpl.RenderCreateGroupView(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+func (dialect) CreateOrReplaceEntityCurrentView(spec engine.EntityCurrentViewSpec) string {
+	s, err := tmpl.RenderCreateEntityCurrentView(spec)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}

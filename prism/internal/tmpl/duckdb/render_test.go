@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,4 +73,146 @@ func TestCreateCurrentView(t *testing.T) {
 	})
 	require.NoError(t, err)
 	goldenAssert(t, "create_current_view", got)
+}
+
+// readGolden reads a golden file from testdata and returns its content trimmed.
+func readGolden(t *testing.T, name string) string {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join("testdata", name))
+	require.NoError(t, err)
+	return strings.TrimSpace(string(b))
+}
+
+func TestRenderCreateIdfr_Golden(t *testing.T) {
+	got, err := RenderCreateIdfr(engine.IdfrTableSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_idfr.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateFocal_Golden(t *testing.T) {
+	got, err := RenderCreateFocal(engine.FocalTableSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_focal.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateDescriptor_Golden(t *testing.T) {
+	got, err := RenderCreateDescriptor(engine.DescriptorTableSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_descriptor.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateRelationship_Golden(t *testing.T) {
+	got, err := RenderCreateRelationship(engine.RelationshipTableSpec{
+		Schema: "dab", Entity: "customer", Related: "order",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_relationship.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeIdfr_Golden(t *testing.T) {
+	got, err := RenderMergeIdfr(engine.MergeIdfrSpec{
+		Schema: "dab", Entity: "customer",
+		MappingGroup: "adventure_works",
+		InstRowKey:   "adventure_works.customer",
+		SourceCTE: "    SELECT 'CUSTOMER:' || CAST(customer_id AS VARCHAR) AS \"customer_idfr\",\n           modified_date AS eff_tmstp\n    FROM \"das__adventure_works\".\"customer__current\"",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_idfr.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeFocal_Golden(t *testing.T) {
+	got, err := RenderMergeFocal(engine.MergeFocalSpec{Schema: "dab", Entity: "customer"})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_focal.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeDescriptor_Golden(t *testing.T) {
+	got, err := RenderMergeDescriptor(engine.MergeDescriptorSpec{
+		Schema: "dab", Entity: "customer",
+		MappingGroup: "adventure_works", InstRowKey: "adventure_works.customer",
+		SourceCTE: "    SELECT * FROM \"das__adventure_works\".\"customer__current\"",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_descriptor.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderMergeRelationship_Golden(t *testing.T) {
+	got, err := RenderMergeRelationship(engine.MergeRelationshipSpec{
+		Schema: "dab", Entity: "customer", Related: "order",
+		MappingGroup: "adventure_works", InstRowKey: "adventure_works.customer",
+		SourceCTE: "    SELECT * FROM \"das__adventure_works\".\"customer__current\"",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_merge_relationship.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderRecomputeIdfr_Golden(t *testing.T) {
+	got, err := RenderRecomputeIdfrRowSt(engine.RecomputeIdfrRowStSpec{
+		Schema: "dab", Entity: "customer",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_recompute_idfr.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderRecomputeDescriptor_Golden(t *testing.T) {
+	got, err := RenderRecomputeDescriptorRowSt(engine.RecomputeDescriptorRowStSpec{
+		Schema: "dab", Entity: "customer",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_recompute_descriptor.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderRecomputeRelationship_Golden(t *testing.T) {
+	got, err := RenderRecomputeRelationshipRowSt(engine.RecomputeRelationshipRowStSpec{
+		Schema: "dab", Entity: "customer", Related: "order",
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_recompute_relationship.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateGroupView_Golden(t *testing.T) {
+	got, err := RenderCreateGroupView(engine.GroupViewSpec{
+		Schema: "dab", Entity: "customer", AttrID: "customer_lifetime_value",
+		TypeKeyHex: "deadbeef00000000000000000000beef",
+		Members: []engine.GroupViewMember{
+			{InnerID: "amount", Type: "NUMBER"},
+			{InnerID: "currency", Type: "UNIT"},
+		},
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_group_view.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateEntityCurrentView_Golden(t *testing.T) {
+	got, err := RenderCreateEntityCurrentView(engine.EntityCurrentViewSpec{
+		Schema: "dab", Entity: "customer",
+		Attributes: []engine.EntityCurrentAttribute{
+			{
+				AttrID:  "customer_name",
+				Members: []engine.GroupViewMember{{InnerID: "customer_name", Type: "STRING"}},
+			},
+			{
+				AttrID: "customer_lifetime_value",
+				Members: []engine.GroupViewMember{
+					{InnerID: "amount", Type: "NUMBER"},
+					{InnerID: "currency", Type: "UNIT"},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_entity_current_view.sql.golden")
+	require.Equal(t, want, got)
 }

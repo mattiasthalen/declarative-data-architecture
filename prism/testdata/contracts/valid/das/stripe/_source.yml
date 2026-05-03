@@ -1,0 +1,4 @@
+version: 1
+source:
+  provider: rest
+  base_url: "https://api.stripe.com/v1"

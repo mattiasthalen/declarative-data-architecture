@@ -51,3 +51,196 @@ func RenderAppendHistorized(spec engine.HistorizedAppendSpec) (string, error) {
 func RenderCreateCurrentView(spec engine.CurrentViewSpec) (string, error) {
 	return render("create_current_view.sql.tmpl", spec)
 }
+
+// --- M2 (DAB) renderers ----------------------------------------------------
+
+func RenderCreateIdfr(spec engine.IdfrTableSpec) (string, error) {
+	return render("dab_create_idfr.sql.tmpl", struct {
+		Schema, Table, KeyCol, IdfrCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+		spec.Entity + "_idfr",
+	})
+}
+
+func RenderCreateFocal(spec engine.FocalTableSpec) (string, error) {
+	return render("dab_create_focal.sql.tmpl", struct {
+		Schema, Table, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity,
+		spec.Entity + "_key",
+	})
+}
+
+func RenderCreateDescriptor(spec engine.DescriptorTableSpec) (string, error) {
+	return render("dab_create_descriptor.sql.tmpl", struct {
+		Schema, Table, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__descriptor",
+		spec.Entity + "_key",
+	})
+}
+
+func RenderCreateRelationship(spec engine.RelationshipTableSpec) (string, error) {
+	return render("dab_create_relationship.sql.tmpl", struct {
+		Schema, Table, KeyCol, RelatedCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.Related + spec.Suffix + "__rel",
+		spec.Entity + "_key",
+		spec.Related + "_key",
+	})
+}
+
+func RenderMergeIdfr(spec engine.MergeIdfrSpec) (string, error) {
+	return render("dab_merge_idfr.sql.tmpl", struct {
+		Schema, Table, KeyCol, IdfrCol, MappingGroup, InstRowKey, SourceCTE string
+	}{
+		spec.Schema,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+		spec.Entity + "_idfr",
+		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
+	})
+}
+
+func RenderMergeFocal(spec engine.MergeFocalSpec) (string, error) {
+	return render("dab_merge_focal.sql.tmpl", struct {
+		Schema, Table, IdfrTable, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+	})
+}
+
+func RenderMergeDescriptor(spec engine.MergeDescriptorSpec) (string, error) {
+	return render("dab_merge_descriptor.sql.tmpl", struct {
+		Schema, Table, KeyCol, MappingGroup, InstRowKey, SourceCTE string
+	}{
+		spec.Schema,
+		spec.Entity + "__descriptor",
+		spec.Entity + "_key",
+		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
+	})
+}
+
+func RenderMergeRelationship(spec engine.MergeRelationshipSpec) (string, error) {
+	return render("dab_merge_relationship.sql.tmpl", struct {
+		Schema, Table, KeyCol, RelatedCol, MappingGroup, InstRowKey, SourceCTE string
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.Related + spec.Suffix + "__rel",
+		spec.Entity + "_key",
+		spec.Related + "_key",
+		spec.MappingGroup, spec.InstRowKey, spec.SourceCTE,
+	})
+}
+
+func RenderRecomputeIdfrRowSt(spec engine.RecomputeIdfrRowStSpec) (string, error) {
+	return render("dab_recompute_idfr.sql.tmpl", struct {
+		Schema, Table, KeyCol, IdfrCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__idfr",
+		spec.Entity + "_key",
+		spec.Entity + "_idfr",
+	})
+}
+
+func RenderRecomputeDescriptorRowSt(spec engine.RecomputeDescriptorRowStSpec) (string, error) {
+	return render("dab_recompute_descriptor.sql.tmpl", struct {
+		Schema, Table, KeyCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__descriptor",
+		spec.Entity + "_key",
+	})
+}
+
+func RenderRecomputeRelationshipRowSt(spec engine.RecomputeRelationshipRowStSpec) (string, error) {
+	return render("dab_recompute_relationship.sql.tmpl", struct {
+		Schema, Table, KeyCol, RelatedCol string
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.Related + spec.Suffix + "__rel",
+		spec.Entity + "_key",
+		spec.Related + "_key",
+	})
+}
+
+// slotForType maps an attribute type to its descriptor-table column.
+func slotForType(t string) string {
+	switch t {
+	case "STRING":
+		return "val_str"
+	case "NUMBER":
+		return "val_num"
+	case "UNIT":
+		return "uom"
+	case "START_TIMESTAMP":
+		return "sta_tmstp"
+	case "END_TIMESTAMP":
+		return "end_tmstp"
+	}
+	return "/* unknown type " + t + " */"
+}
+
+func RenderCreateGroupView(spec engine.GroupViewSpec) (string, error) {
+	type member struct{ InnerID, Slot string }
+	ms := make([]member, len(spec.Members))
+	for i, m := range spec.Members {
+		ms[i] = member{InnerID: m.InnerID, Slot: slotForType(m.Type)}
+	}
+	return render("dab_create_group_view.sql.tmpl", struct {
+		Schema, ViewName, KeyCol, DescTable, TypeKeyHex string
+		Members                                         []member
+	}{
+		spec.Schema,
+		spec.Entity + "__" + spec.AttrID,
+		spec.Entity + "_key",
+		spec.Entity + "__descriptor",
+		spec.TypeKeyHex,
+		ms,
+	})
+}
+
+// RenderCreateEntityCurrentView builds the per-entity __current view, joining
+// the focal table with each per-group view and projecting one output column
+// per inner member of each attribute.
+func RenderCreateEntityCurrentView(spec engine.EntityCurrentViewSpec) (string, error) {
+	type joinT struct{ Alias, ViewName string }
+	type colT struct{ ViewAlias, InnerCol, OutputCol string }
+	var joins []joinT
+	var cols []colT
+	for i, a := range spec.Attributes {
+		alias := fmt.Sprintf("a%d", i)
+		joins = append(joins, joinT{Alias: alias, ViewName: spec.Entity + "__" + a.AttrID})
+		// Single-type attribute (one member with InnerID == AttrID): output name is just AttrID.
+		// Atomic group (>=1 member with distinct InnerID): output name is AttrID__InnerID.
+		single := len(a.Members) == 1 && a.Members[0].InnerID == a.AttrID
+		for _, m := range a.Members {
+			out := a.AttrID + "__" + m.InnerID
+			if single {
+				out = a.AttrID
+			}
+			cols = append(cols, colT{ViewAlias: alias, InnerCol: m.InnerID, OutputCol: out})
+		}
+	}
+	return render("dab_create_entity_current_view.sql.tmpl", struct {
+		Schema, ViewName, KeyCol, FocalTable string
+		Joins                                []joinT
+		Columns                              []colT
+	}{
+		spec.Schema,
+		spec.Entity + "__current",
+		spec.Entity + "_key",
+		spec.Entity,
+		joins, cols,
+	})
+}

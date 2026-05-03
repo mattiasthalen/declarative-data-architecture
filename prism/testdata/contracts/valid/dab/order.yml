@@ -1,0 +1,23 @@
+version: 1
+entity:
+  id: ORDER
+  name: ORDER
+  definition: "A sales order"
+
+attributes:
+  - id: ORDER_NUMBER
+    definition: "Numeric order identifier"
+    type: NUMBER
+    effective_timestamp: true
+
+mapping_groups:
+  - name: adventure_works
+    tables:
+      - source: adventure_works
+        entity: order
+        primary_keys:
+          - "'ORDER:' || CAST(order_id AS VARCHAR)"
+        entity_effective_timestamp_expression: modified_date
+        attributes:
+          - id: ORDER_NUMBER
+            transformation_expression: order_id

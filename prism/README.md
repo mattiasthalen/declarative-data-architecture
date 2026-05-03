@@ -48,6 +48,26 @@ prism run                                          # land + build all sources
 duckdb warehouse.duckdb -c "FROM das__adventure_works.customer__current LIMIT 5;"
 ```
 
+## DAB (Data According to Business)
+
+After DAS lands and types your raw data, DAB layers focal entities,
+descriptors, and relationships on top — bi-temporal, conformed across
+sources.
+
+```bash
+prism dab discover                 # scaffold contracts/dab/*.yml from DAS
+# (edit contracts/dab/customer.yml: organize attributes into atomic-context
+#  groups, declare relationships to other focals, etc.)
+prism validate                     # checks DAS + DAB + cross-layer references
+prism dab run --all                # populate dab.* tables and views
+duckdb warehouse.duckdb -c "FROM dab.customer__current LIMIT 5;"
+```
+
+`prism run` does the whole chain (`das run --all` then `dab build --all`).
+
+See `docs/superpowers/specs/2026-05-02-prism-m2-dab-design.md` for the
+full DAB design.
+
 ## Commands
 
 | Command | Purpose |

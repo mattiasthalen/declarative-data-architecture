@@ -1,0 +1,17 @@
+version: 1
+entity: {id: CUSTOMER, name: CUSTOMER, definition: "A customer"}
+attributes:
+  - id: CUSTOMER_LIFETIME_VALUE
+    definition: "x"
+    group:
+      - {id: AMOUNT, type: NUMBER}
+      - {id: CURRENCY, type: UNIT}
+mapping_groups:
+  - name: aw
+    tables:
+      - source: adventure_works
+        entity: customer
+        primary_keys: ["customer_id"]
+        attributes:
+          # binds AMOUNT but not CURRENCY -- partial group is illegal
+          - {id: CUSTOMER_LIFETIME_VALUE.AMOUNT, transformation_expression: lifetime_value}

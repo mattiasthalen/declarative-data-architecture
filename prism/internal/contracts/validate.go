@@ -18,11 +18,13 @@ var schemasFS embed.FS
 var (
 	sourceSchema *jsonschema.Schema
 	entitySchema *jsonschema.Schema
+	focalSchema  *jsonschema.Schema
 )
 
 func init() {
 	sourceSchema = mustCompile("schemas/das_source_v1.json")
 	entitySchema = mustCompile("schemas/das_entity_v1.json")
+	focalSchema  = mustCompile("schemas/dab_entity_v1.json")
 }
 
 func mustCompile(path string) *jsonschema.Schema {

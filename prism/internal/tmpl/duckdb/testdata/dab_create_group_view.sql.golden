@@ -1,0 +1,10 @@
+CREATE OR REPLACE VIEW "dab"."customer__customer_lifetime_value" AS
+SELECT
+    "customer_key",
+    eff_tmstp,
+    ver_tmstp,
+    row_st,
+    val_num AS "amount",
+    uom AS "currency"
+FROM "dab"."customer__descriptor"
+WHERE type_key = 'deadbeef00000000000000000000beef';

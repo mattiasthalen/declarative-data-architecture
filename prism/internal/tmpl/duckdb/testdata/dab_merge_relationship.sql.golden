@@ -1,0 +1,27 @@
+INSERT INTO "dab"."customer__order__rel" (
+    "customer_key", "order_key", type_key,
+    eff_tmstp, ver_tmstp, seq_nbr, row_st,
+    data_key, inst_key, inst_row_key, popln_tmstp
+)
+SELECT
+    src."customer_key",
+    src."order_key",
+    src.type_key,
+    src.eff_tmstp,
+    CURRENT_TIMESTAMP AS ver_tmstp,
+    1                 AS seq_nbr,
+    'Y'               AS row_st,
+    'dab'                 AS data_key,
+    'adventure_works' AS inst_key,
+    'adventure_works.customer'   AS inst_row_key,
+    CURRENT_TIMESTAMP     AS popln_tmstp
+FROM (
+    SELECT * FROM "das__adventure_works"."customer__current"
+) src
+WHERE NOT EXISTS (
+    SELECT 1 FROM "dab"."customer__order__rel" d
+    WHERE d."customer_key"     = src."customer_key"
+      AND d."order_key" = src."order_key"
+      AND d.type_key                = src.type_key
+      AND d.eff_tmstp               = src.eff_tmstp
+);

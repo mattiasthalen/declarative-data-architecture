@@ -1,0 +1,24 @@
+WITH ranked AS (
+    SELECT
+        {{ quote .KeyCol }},
+        type_key,
+        eff_tmstp,
+        ver_tmstp,
+        ROW_NUMBER() OVER (
+            PARTITION BY {{ quote .KeyCol }}, type_key
+            ORDER BY eff_tmstp ASC, ver_tmstp ASC
+        ) AS new_seq_nbr,
+        ROW_NUMBER() OVER (
+            PARTITION BY {{ quote .KeyCol }}, type_key
+            ORDER BY eff_tmstp DESC, ver_tmstp DESC
+        ) AS inv_rnk
+    FROM {{ quote .Schema }}.{{ quote .Table }}
+)
+UPDATE {{ quote .Schema }}.{{ quote .Table }} d
+SET row_st  = CASE WHEN r.inv_rnk = 1 THEN 'Y' ELSE 'N' END,
+    seq_nbr = r.new_seq_nbr
+FROM ranked r
+WHERE d.{{ quote .KeyCol }} = r.{{ quote .KeyCol }}
+  AND d.type_key           = r.type_key
+  AND d.eff_tmstp          = r.eff_tmstp
+  AND d.ver_tmstp          = r.ver_tmstp;

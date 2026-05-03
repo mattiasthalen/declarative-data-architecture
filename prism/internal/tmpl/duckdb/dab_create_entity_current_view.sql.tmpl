@@ -1,0 +1,9 @@
+CREATE OR REPLACE VIEW {{ quote .Schema }}.{{ quote .ViewName }} AS
+SELECT
+    f.{{ quote .KeyCol }}{{ range .Columns }},
+    {{ .ViewAlias }}.{{ quote .InnerCol }} AS {{ quote .OutputCol }}{{ end }}
+FROM {{ quote .Schema }}.{{ quote .FocalTable }} f{{ range .Joins }}
+LEFT JOIN {{ quote $.Schema }}.{{ quote .ViewName }} {{ .Alias }}
+       ON {{ .Alias }}.{{ quote $.KeyCol }} = f.{{ quote $.KeyCol }}
+      AND {{ .Alias }}.row_st = 'Y'{{ end }}
+WHERE f.row_st = 'Y';

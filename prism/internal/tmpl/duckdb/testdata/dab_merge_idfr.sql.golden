@@ -1,0 +1,30 @@
+INSERT INTO "dab"."customer__idfr" (
+    "customer_key", "customer_idfr",
+    eff_tmstp, ver_tmstp, seq_nbr, row_st,
+    data_key, inst_key, inst_row_key, popln_tmstp
+)
+SELECT
+    md5(dedup."customer_idfr") AS "customer_key",
+    dedup."customer_idfr",
+    dedup.eff_tmstp,
+    CURRENT_TIMESTAMP               AS ver_tmstp,
+    1                               AS seq_nbr,
+    'Y'                             AS row_st,
+    'dab'                           AS data_key,
+    'adventure_works'           AS inst_key,
+    'adventure_works.customer'             AS inst_row_key,
+    CURRENT_TIMESTAMP               AS popln_tmstp
+FROM (
+    SELECT "customer_idfr", MAX(eff_tmstp) AS eff_tmstp
+    FROM (
+    SELECT 'CUSTOMER:' || CAST(customer_id AS VARCHAR) AS "customer_idfr",
+           modified_date AS eff_tmstp
+    FROM "das__adventure_works"."customer__current"
+    ) raw
+    GROUP BY "customer_idfr"
+) dedup
+WHERE NOT EXISTS (
+    SELECT 1 FROM "dab"."customer__idfr" d
+    WHERE d."customer_idfr" = dedup."customer_idfr"
+      AND d.eff_tmstp = dedup.eff_tmstp
+);

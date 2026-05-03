@@ -22,4 +22,22 @@ type Dialect interface {
 	CreateHistorizedTableIfNotExists(spec HistorizedTableSpec) string
 	AppendIntoHistorized(spec HistorizedAppendSpec) string
 	CreateOrReplaceCurrentView(spec CurrentViewSpec) string
+
+	// M2 — DAB:
+	CreateIdfrTableIfNotExists(spec IdfrTableSpec) string
+	CreateFocalTableIfNotExists(spec FocalTableSpec) string
+	CreateDescriptorTableIfNotExists(spec DescriptorTableSpec) string
+	CreateRelationshipTableIfNotExists(spec RelationshipTableSpec) string
+
+	MergeIdfr(spec MergeIdfrSpec) string
+	MergeFocal(spec MergeFocalSpec) string
+	MergeDescriptor(spec MergeDescriptorSpec) string
+	MergeRelationship(spec MergeRelationshipSpec) string
+
+	RecomputeIdfrRowSt(spec RecomputeIdfrRowStSpec) string
+	RecomputeDescriptorRowSt(spec RecomputeDescriptorRowStSpec) string
+	RecomputeRelationshipRowSt(spec RecomputeRelationshipRowStSpec) string
+
+	CreateOrReplaceGroupView(spec GroupViewSpec) string
+	CreateOrReplaceEntityCurrentView(spec EntityCurrentViewSpec) string
 }

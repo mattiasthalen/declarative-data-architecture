@@ -1,0 +1,96 @@
+version: 1
+
+entity:
+  id: CUSTOMER
+  name: CUSTOMER
+  definition: "A customer account"
+
+attributes:
+  - id: CUSTOMER_NAME
+    definition: "Display name of the customer"
+    type: STRING
+    effective_timestamp: true
+
+  - id: CUSTOMER_LIFETIME_VALUE
+    definition: "Total monetary value to date"
+    effective_timestamp: true
+    group:
+      - id: AMOUNT
+        type: NUMBER
+      - id: CURRENCY
+        type: UNIT
+
+  - id: CUSTOMER_ACTIVE_WINDOW
+    definition: "Window during which the customer is active"
+    effective_timestamp: true
+    group:
+      - id: START
+        type: START_TIMESTAMP
+      - id: END
+        type: END_TIMESTAMP
+
+relationships:
+  - id: CUSTOMER_PLACES_ORDER
+    definition: "Customer placed this order"
+    target_entity_id: ORDER
+
+mapping_groups:
+  - name: adventure_works
+    tables:
+      - source: adventure_works
+        entity: customer
+        from: current
+        primary_keys:
+          - "'CUSTOMER:' || CAST(customer_id AS VARCHAR)"
+        entity_effective_timestamp_expression: modified_date
+        attributes:
+          - id: CUSTOMER_NAME
+            transformation_expression: company_name
+          - id: CUSTOMER_LIFETIME_VALUE.AMOUNT
+            transformation_expression: lifetime_value
+          - id: CUSTOMER_LIFETIME_VALUE.CURRENCY
+            transformation_expression: "'USD'"
+          - id: CUSTOMER_ACTIVE_WINDOW.START
+            transformation_expression: created_at
+          - id: CUSTOMER_ACTIVE_WINDOW.END
+            transformation_expression: deactivated_at
+
+  - name: adventure_works_orders
+    tables:
+      - source: adventure_works
+        entity: order
+        from: current
+        primary_keys:
+          - "'CUSTOMER:' || CAST(customer_id AS VARCHAR)"
+        entity_effective_timestamp_expression: modified_date
+        attributes:
+          # No attribute bindings — this contribution exists purely to populate
+          # the IDFR side and the relationship table. We must bind at least one
+          # attribute (mapping schema requires attributes[] minItems: 1), so we
+          # bind CUSTOMER_NAME from the order's customer_id-side proxy: empty.
+          # WORKAROUND: bind CUSTOMER_NAME with a where:false so it never produces
+          # a descriptor row (preserves model-binding completeness).
+          - id: CUSTOMER_NAME
+            transformation_expression: "CAST(NULL AS VARCHAR)"
+            where: "FALSE"
+        relationships:
+          - id: CUSTOMER_PLACES_ORDER
+            target_transformation_expression: "'ORDER:' || CAST(order_id AS VARCHAR)"
+
+  - name: stripe
+    tables:
+      - source: stripe
+        entity: customer
+        from: current
+        primary_keys:
+          - "'CUSTOMER:' || CAST(aw_customer_id AS VARCHAR)"
+        entity_effective_timestamp_expression: updated
+        attributes:
+          - id: CUSTOMER_NAME
+            transformation_expression: name
+          - id: CUSTOMER_LIFETIME_VALUE.AMOUNT
+            transformation_expression: total_revenue / 100.0
+          - id: CUSTOMER_LIFETIME_VALUE.CURRENCY
+            transformation_expression: currency
+          # Window members not bound from stripe; binding-completeness is per-table,
+          # so the active window simply isn't contributed by the stripe table.
