@@ -26,6 +26,7 @@ func NewRoot() *cobra.Command {
 	addDasRun(root)
 	addDabBuild(root)
 	addDabRun(root)
+	addDabDiscover(root)
 	addRun(root)
 	return root
 }
