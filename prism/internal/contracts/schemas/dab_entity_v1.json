@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prism.dev/schemas/dab_entity_v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "entity", "attributes", "mapping_groups"],
+  "properties": {
+    "version": {"const": 1},
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "definition"],
+      "properties": {
+        "id":          {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"},
+        "name":        {"type": "string", "minLength": 1},
+        "definition":  {"type": "string", "minLength": 1},
+        "description": {"type": "string"}
+      }
+    },
+    "attributes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "definition"],
+        "properties": {
+          "id":          {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"},
+          "definition":  {"type": "string", "minLength": 1},
+          "description": {"type": "string"},
+          "type": {
+            "type": "string",
+            "enum": ["STRING", "NUMBER", "UNIT", "START_TIMESTAMP", "END_TIMESTAMP"]
+          },
+          "effective_timestamp": {"type": "boolean"},
+          "group": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "type"],
+              "properties": {
+                "id":   {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"},
+                "type": {"type": "string",
+                         "enum": ["STRING", "NUMBER", "UNIT", "START_TIMESTAMP", "END_TIMESTAMP"]}
+              }
+            }
+          }
+        },
+        "oneOf": [
+          {"required": ["type"], "not": {"required": ["group"]}},
+          {"required": ["group"], "not": {"required": ["type"]}}
+        ]
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "definition", "target_entity_id"],
+        "properties": {
+          "id":               {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"},
+          "definition":       {"type": "string", "minLength": 1},
+          "description":      {"type": "string"},
+          "target_entity_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"}
+        }
+      }
+    },
+    "mapping_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "tables"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"},
+          "allow_multiple_identifiers": {"type": "boolean"},
+          "tables": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source", "entity", "primary_keys", "attributes"],
+              "properties": {
+                "source": {"type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"},
+                "entity": {"type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"},
+                "from":   {"type": "string", "enum": ["current", "historized"]},
+                "primary_keys": {
+                  "type": "array", "minItems": 1,
+                  "items": {"type": "string", "minLength": 1}
+                },
+                "entity_effective_timestamp_expression": {"type": "string", "minLength": 1},
+                "where": {"type": "string", "minLength": 1},
+                "attributes": {
+                  "type": "array", "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id", "transformation_expression"],
+                    "properties": {
+                      "id": {"type": "string",
+                             "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(\\.[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)?$"},
+                      "transformation_expression": {"type": "string", "minLength": 1},
+                      "where": {"type": "string", "minLength": 1},
+                      "attribute_effective_timestamp_expression": {"type": "string", "minLength": 1}
+                    }
+                  }
+                },
+                "relationships": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id", "target_transformation_expression"],
+                    "properties": {
+                      "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"},
+                      "target_transformation_expression": {"type": "string", "minLength": 1},
+                      "where": {"type": "string", "minLength": 1}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
