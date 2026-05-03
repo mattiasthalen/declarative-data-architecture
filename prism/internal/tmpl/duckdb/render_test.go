@@ -180,3 +180,39 @@ func TestRenderRecomputeRelationship_Golden(t *testing.T) {
 	want := readGolden(t, "dab_recompute_relationship.sql.golden")
 	require.Equal(t, want, got)
 }
+
+func TestRenderCreateGroupView_Golden(t *testing.T) {
+	got, err := RenderCreateGroupView(engine.GroupViewSpec{
+		Schema: "dab", Entity: "customer", AttrID: "customer_lifetime_value",
+		TypeKeyHex: "deadbeef00000000000000000000beef",
+		Members: []engine.GroupViewMember{
+			{InnerID: "amount", Type: "NUMBER"},
+			{InnerID: "currency", Type: "UNIT"},
+		},
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_group_view.sql.golden")
+	require.Equal(t, want, got)
+}
+
+func TestRenderCreateEntityCurrentView_Golden(t *testing.T) {
+	got, err := RenderCreateEntityCurrentView(engine.EntityCurrentViewSpec{
+		Schema: "dab", Entity: "customer",
+		Attributes: []engine.EntityCurrentAttribute{
+			{
+				AttrID:  "customer_name",
+				Members: []engine.GroupViewMember{{InnerID: "customer_name", Type: "STRING"}},
+			},
+			{
+				AttrID: "customer_lifetime_value",
+				Members: []engine.GroupViewMember{
+					{InnerID: "amount", Type: "NUMBER"},
+					{InnerID: "currency", Type: "UNIT"},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+	want := readGolden(t, "dab_create_entity_current_view.sql.golden")
+	require.Equal(t, want, got)
+}

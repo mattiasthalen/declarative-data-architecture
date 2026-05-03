@@ -1,0 +1,14 @@
+CREATE OR REPLACE VIEW "dab"."customer__current" AS
+SELECT
+    f."customer_key",
+    a0."customer_name" AS "customer_name",
+    a1."amount" AS "customer_lifetime_value__amount",
+    a1."currency" AS "customer_lifetime_value__currency"
+FROM "dab"."customer" f
+LEFT JOIN "dab"."customer__customer_name" a0
+       ON a0."customer_key" = f."customer_key"
+      AND a0.row_st = 'Y'
+LEFT JOIN "dab"."customer__customer_lifetime_value" a1
+       ON a1."customer_key" = f."customer_key"
+      AND a1.row_st = 'Y'
+WHERE f.row_st = 'Y';

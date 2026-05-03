@@ -1,0 +1,9 @@
+CREATE OR REPLACE VIEW {{ quote .Schema }}.{{ quote .ViewName }} AS
+SELECT
+    {{ quote .KeyCol }},
+    eff_tmstp,
+    ver_tmstp,
+    row_st{{ range .Members }},
+    {{ .Slot }} AS {{ quote .InnerID }}{{ end }}
+FROM {{ quote .Schema }}.{{ quote .DescTable }}
+WHERE type_key = '{{ .TypeKeyHex }}';
