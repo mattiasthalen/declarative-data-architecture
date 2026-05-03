@@ -20,6 +20,15 @@ attributes:
       - id: CURRENCY
         type: UNIT
 
+  - id: CUSTOMER_ACTIVE_WINDOW
+    definition: "Window during which the customer is active"
+    effective_timestamp: true
+    group:
+      - id: START
+        type: START_TIMESTAMP
+      - id: END
+        type: END_TIMESTAMP
+
 mapping_groups:
   - name: adventure_works
     tables:
@@ -36,3 +45,7 @@ mapping_groups:
             transformation_expression: lifetime_value
           - id: CUSTOMER_LIFETIME_VALUE.CURRENCY
             transformation_expression: "'USD'"
+          - id: CUSTOMER_ACTIVE_WINDOW.START
+            transformation_expression: created_at
+          - id: CUSTOMER_ACTIVE_WINDOW.END
+            transformation_expression: deactivated_at

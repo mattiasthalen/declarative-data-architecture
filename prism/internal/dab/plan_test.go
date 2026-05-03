@@ -38,8 +38,9 @@ func TestBuildPlan_FromCustomerFixture(t *testing.T) {
 	require.Contains(t, m.EffTmstpExpr, "modified_date")
 
 	// Descriptor mappings: one per outer attribute (CUSTOMER_NAME single-type;
-	// CUSTOMER_LIFETIME_VALUE atomic group with two members).
-	require.Len(t, m.Descriptors, 2)
+	// CUSTOMER_LIFETIME_VALUE atomic group with two members;
+	// CUSTOMER_ACTIVE_WINDOW atomic group with two members).
+	require.Len(t, m.Descriptors, 3)
 	byAttr := map[string]dab.DescriptorMapping{}
 	for _, d := range m.Descriptors {
 		byAttr[d.AttrID] = d
@@ -54,6 +55,6 @@ func TestBuildPlan_FromCustomerFixture(t *testing.T) {
 	require.Empty(t, clv.ValStrExpr)
 
 	// Per-group typed view inputs.
-	require.Len(t, plan.GroupViews, 2)
-	require.Len(t, plan.EntityCurrentView.Attributes, 2)
+	require.Len(t, plan.GroupViews, 3)
+	require.Len(t, plan.EntityCurrentView.Attributes, 3)
 }
